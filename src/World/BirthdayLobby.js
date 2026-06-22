@@ -89,7 +89,7 @@ export class BirthdayLobby {
 
         // GLOBOS: Distribución mejorada
         const balloonPositionsX = [-4.5, -2.2, 0, 2.2, 4.5]; 
-        const balloonHeightsY = [4.2, 4.5, 5.0, 4.5, 4.2]; // El central (índice 2) es más alto (5.0)
+        const balloonHeightsY = [4.2, 4.5, 5.0, 4.5, 4.2]; 
 
         for(let b = 0; b < 5; b++) {
             const randomBalloonTex = this.balloonTextures[Math.floor(Math.random() * this.balloonTextures.length)];
@@ -120,6 +120,7 @@ export class BirthdayLobby {
 
     createRoom2() {
         const room = new THREE.Group();
+        this.addTextLabel(room, "ELIGE UNA PUERTA!", 0, 3.5);
         const doorTex = this.loadPixelTexture('/door.png');
         const doorGeo = new THREE.PlaneGeometry(3, 4.1);
 
@@ -128,34 +129,54 @@ export class BirthdayLobby {
         this.doorLetter = new THREE.Mesh(doorGeo, doorLeftMat);
         this.doorLetter.position.set(-4, -1.0, -1.0);
         room.add(this.doorLetter);
-        this.addTextLabel(room, "CARTA", -4);
+        this.addTextLabel(room, "CARTA", -4, 1.5);
 
         // Puerta 2
         const doorRightMat = new THREE.MeshBasicMaterial({ map: doorTex, transparent: true, alphaTest: 0.5 });
         this.doorStadium = new THREE.Mesh(doorGeo, doorRightMat);
         this.doorStadium.position.set(4, -1.0, -1.0);
         room.add(this.doorStadium);
-        this.addTextLabel(room, "CONCIERTO", 4);
+        this.addTextLabel(room, "CONCIERTO", 4, 1.5);
+
+        // Distribuciónd e 6 globos en la sala con alturas variadas
+        const balloonPositionsX = [-9, -6, -2, 2, 6, 9]; 
+        const balloonHeightsY = [4.5, 5.1, 5.6, 5.7, 4.2, 4.8]; 
+
+        for(let b = 0; b < balloonPositionsX.length; b++) {
+            const randomBalloonTex = this.balloonTextures[Math.floor(Math.random() * this.balloonTextures.length)];
+            const bMat = new THREE.MeshBasicMaterial({ map: randomBalloonTex, transparent: true, alphaTest: 0.5 });
+            const balloon = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 2.4), bMat);
+            
+            // Los colocamos usando nuestros arreglos de posiciones
+            balloon.position.set(balloonPositionsX[b], balloonHeightsY[b], -1.0);
+            room.add(balloon);
+            
+            // Los metemos al arreglo principal para que tengan su animación de flotar
+            this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2 });
+        }
 
         this.lobbyGroup.add(room);
         this.rooms.push(room);
     }
 
-    addTextLabel(group, text, xPos) {
+    addTextLabel(group, text, xPos, yPos = 2.0) {
         const canvas = document.createElement('canvas');
-        canvas.width = 256; canvas.height = 64;
+        canvas.width = 520; 
+        canvas.height = 64;
+
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 30px "Courier New", Courier, monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(text, 128, 40);
+        ctx.fillText(text, 256, 40);
 
         const tex = new THREE.CanvasTexture(canvas);
         const label = new THREE.Mesh(
-            new THREE.PlaneGeometry(4, 1), 
+            new THREE.PlaneGeometry(8, 1), 
             new THREE.MeshBasicMaterial({ map: tex, transparent: true })
         );
-        label.position.set(xPos, 2.0, -1.0);
+
+        label.position.set(xPos, yPos, -1.0);
         group.add(label);
     }
 
@@ -165,7 +186,7 @@ export class BirthdayLobby {
         const playerMat = new THREE.MeshBasicMaterial({ map: playerTex, transparent: true, alphaTest: 0.5 });
         
         this.player = new THREE.Mesh(playerGeo, playerMat);
-        this.player.position.set(-13, -1, -2.0); 
+        this.player.position.set(-13, -1.2, 1); 
         this.lobbyGroup.add(this.player);
     }
 
@@ -194,7 +215,7 @@ export class BirthdayLobby {
             b.mesh.position.y += Math.sin(time * 2 + b.offset) * 0.005;
         });
 
-        const speed = 0.12;
+        const speed = 0.09;
         if (this.keys.left) this.player.position.x -= speed;
         if (this.keys.right) this.player.position.x += speed;
 
