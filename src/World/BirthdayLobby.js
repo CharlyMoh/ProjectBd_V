@@ -13,6 +13,12 @@ export class BirthdayLobby {
         
         this.currentRoom = 0;
         this.rooms = []; 
+        
+        // Banderas de control de estado y transiciones
+        this.isCardOpen = false;       
+        this.isPromptVisible = false;   
+        this.isTransitioning = false;
+        this.onEnterLetter = null; // Callback vinculado con main.js
 
         this.textureLoader = new THREE.TextureLoader();
 
@@ -29,6 +35,10 @@ export class BirthdayLobby {
         this.createRoom2();       
         
         this.createPlayer();
+        
+        // Crear el indicador interactivo (Inicia oculto)
+        this.createInteractionPromptLabel(); 
+        
         this.updateRoomVisibility(); 
         
         this.initControls();
@@ -52,7 +62,6 @@ export class BirthdayLobby {
         const borderGeo = new THREE.PlaneGeometry(150, 0.4);
         const borderMat = new THREE.MeshBasicMaterial({ color: '#888888' });
         
-        // Mantenemos techo alto (Y=5.5)
         const borderTop = new THREE.Mesh(borderGeo, borderMat);
         borderTop.position.set(0, 7.5, -4);
         this.lobbyGroup.add(borderTop);
@@ -87,7 +96,7 @@ export class BirthdayLobby {
             group.add(kidR);
         }
 
-        // GLOBOS: Distribución mejorada
+        // GLOBOS habituales de las salas 0 y 1
         const balloonPositionsX = [-4.5, -2.2, 0, 2.2, 4.5]; 
         const balloonHeightsY = [4.2, 4.5, 5.0, 4.5, 4.2]; 
 
@@ -96,7 +105,6 @@ export class BirthdayLobby {
             const bMat = new THREE.MeshBasicMaterial({ map: randomBalloonTex, transparent: true, alphaTest: 0.5 });
             const balloon = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 2.4), bMat);
             
-            // Usamos balloonHeightsY para que el del centro quede despejado
             balloon.position.set(offsetX + balloonPositionsX[b], balloonHeightsY[b], -1.0);
             group.add(balloon);
             this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2 });
@@ -138,7 +146,7 @@ export class BirthdayLobby {
         room.add(this.doorStadium);
         this.addTextLabel(room, "CONCIERTO", 4, 1.5);
 
-        // Distribuciónd e 6 globos en la sala con alturas variadas
+        // --- TUS POSICIONES DE GLOBOS PREFERIDAS PARA LA ROOM 2 ---
         const balloonPositionsX = [-9, -6, -2, 2, 6, 9]; 
         const balloonHeightsY = [4.5, 5.1, 5.6, 5.7, 4.2, 4.8]; 
 
@@ -147,11 +155,8 @@ export class BirthdayLobby {
             const bMat = new THREE.MeshBasicMaterial({ map: randomBalloonTex, transparent: true, alphaTest: 0.5 });
             const balloon = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 2.4), bMat);
             
-            // Los colocamos usando nuestros arreglos de posiciones
             balloon.position.set(balloonPositionsX[b], balloonHeightsY[b], -1.0);
             room.add(balloon);
-            
-            // Los metemos al arreglo principal para que tengan su animación de flotar
             this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2 });
         }
 
@@ -168,7 +173,8 @@ export class BirthdayLobby {
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 30px "Courier New", Courier, monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(text, 256, 40);
+        // Centrado exacto dividiendo el ancho del canvas (520 / 2 = 260)
+        ctx.fillText(text, 260, 40);
 
         const tex = new THREE.CanvasTexture(canvas);
         const label = new THREE.Mesh(
@@ -180,12 +186,36 @@ export class BirthdayLobby {
         group.add(label);
     }
 
+    createInteractionPromptLabel() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 520;
+        canvas.height = 64;
+
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffde59'; // Tono amarillo interactivo nítido
+        ctx.font = 'bold 30px "Courier New", Courier, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText("PRESIONA ↑ O W", 260, 40);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        this.interactionPromptLabel = new THREE.Mesh(
+            new THREE.PlaneGeometry(8, 1), 
+            new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+        );
+        
+        // Al estar el personaje en Z = 1, colocamos el letrero flotando justo al frente (Z = 1.1)
+        this.interactionPromptLabel.position.set(0, 0, 1.1);
+        this.interactionPromptLabel.visible = false; 
+        this.lobbyGroup.add(this.interactionPromptLabel);
+    }
+
     createPlayer() {
         const playerTex = this.loadPixelTexture('/mainCharacter-girl.png');
-        const playerGeo = new THREE.PlaneGeometry(2.2, 4.0);
+        const playerGeo = new THREE.PlaneGeometry(2.2, 4.5);
         const playerMat = new THREE.MeshBasicMaterial({ map: playerTex, transparent: true, alphaTest: 0.5 });
         
         this.player = new THREE.Mesh(playerGeo, playerMat);
+        // Posiciones exactas requeridas: Eje Z puesto en 1 para quedar delante de todo
         this.player.position.set(-13, -1.2, 1); 
         this.lobbyGroup.add(this.player);
     }
@@ -198,6 +228,7 @@ export class BirthdayLobby {
 
     initControls() {
         window.addEventListener('keydown', (e) => {
+            if (this.isCardOpen) return; 
             if (e.key === 'a' || e.key === 'ArrowLeft') this.keys.left = true;
             if (e.key === 'd' || e.key === 'ArrowRight') this.keys.right = true;
             if (e.key === 'w' || e.key === 'ArrowUp') this.keys.up = true;
@@ -211,11 +242,13 @@ export class BirthdayLobby {
     }
 
     update(time) {
+        if (this.isCardOpen) return; 
+
         this.balloons.forEach((b) => {
             b.mesh.position.y += Math.sin(time * 2 + b.offset) * 0.005;
         });
 
-        const speed = 0.09;
+        const speed = 0.20;
         if (this.keys.left) this.player.position.x -= speed;
         if (this.keys.right) this.player.position.x += speed;
 
@@ -241,16 +274,36 @@ export class BirthdayLobby {
             }
         }
 
-        if (this.currentRoom === 2 && this.keys.up) {
+        // Lógica de proximidad de puertas e indicadores interactivos
+        this.isPromptVisible = false; 
+
+        if (this.currentRoom === 2) {
             const distLetter = Math.abs(this.player.position.x - this.doorLetter.position.x);
             const distStadium = Math.abs(this.player.position.x - this.doorStadium.position.x);
 
-            if (distLetter < 1.5) {
-                console.log("¡Leyendo la Carta!");
-            } else if (distStadium < 1.5) {
-                console.log("¡Cargando Estadio de BTS!");
+            const interactionRange = 1.8;
+
+            if (distLetter < interactionRange) {
+                this.interactionPromptLabel.position.x = this.doorLetter.position.x;
+                this.interactionPromptLabel.position.y = 2.0; 
+                this.isPromptVisible = true;
+                
+                if (this.keys.up && !this.isTransitioning) {
+                    this.isTransitioning = true; 
+                    if(this.onEnterLetter) this.onEnterLetter(); 
+                }
+            } else if (distStadium < interactionRange) {
+                this.interactionPromptLabel.position.x = this.doorStadium.position.x;
+                this.interactionPromptLabel.position.y = 2.0; 
+                this.isPromptVisible = true;
+                
+                if (this.keys.up) {
+                    console.log("¡Cargando Estadio de BTS!");
+                }
             }
         }
+
+        this.interactionPromptLabel.visible = this.isPromptVisible;
     }
 
     destroy() {
