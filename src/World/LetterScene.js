@@ -19,6 +19,11 @@ export class LetterScene {
         this.mouseY = 0;
         this.lerpFactor = 0;
 
+        // Nuevos elementos para 2da version
+        this.overlay = null;
+        this.isLetterOpen = false;
+        this.backgroundFade = 1;
+
         this.initUniverse();
         this.initComets();
         this.initParticles(); // 
@@ -152,7 +157,7 @@ export class LetterScene {
         );
 
         this.universeParticles.rotation.x = -0.8;
-this.universeParticles.rotation.z = -0.25;
+        this.universeParticles.rotation.z = -0.25;
 
         this.group.add(
             this.universeParticles
@@ -226,7 +231,7 @@ this.universeParticles.rotation.z = -0.25;
         this.coreParticles.position.z = -60;
 
         this.coreParticles.rotation.x = -0.8;
-this.coreParticles.rotation.z = -0.25;
+        this.coreParticles.rotation.z = -0.25;
 
         this.group.add(
             this.coreParticles
@@ -335,12 +340,12 @@ this.coreParticles.rotation.z = -0.25;
         const ctx = canvas.getContext('2d');
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 100px "Courier New", Courier, monospace';
+        ctx.font = 'bold 135px "Courier New", Courier, monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
-        // ---> ¡PON AQUÍ EL NOMBRE DE LA FESTEJADA! <---
-        ctx.fillText("NOMBRE", 512, 128);
+        // Nombre de las
+        ctx.fillText("PARA: VANNYA", 512, 128);
 
         const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
@@ -356,7 +361,16 @@ this.coreParticles.rotation.z = -0.25;
                     const tx = (x - 512) * scale;
                     const ty = -(y - 128) * scale;
                     const tz = (Math.random() - 0.5) * 1.5;
-                    this.targetPositions.push(new THREE.Vector3(tx, ty, tz));
+
+                    const titleOffsetY = 0;
+
+                    this.targetPositions.push(
+                        new THREE.Vector3(
+                            tx,
+                            ty + titleOffsetY,
+                            tz
+                        )
+                    );
 
                     // 2. POSICIONES INICIALES (¡Nacen de la misma Galaxia Espiral!)
                     const maxRadius = 90;
@@ -381,8 +395,8 @@ this.coreParticles.rotation.z = -0.25;
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(initialPositions, 3));
 
         const material = new THREE.PointsMaterial({
-            size: 0.6,
-            color: '#ab0f0f', // Color del texto (Nombre)
+            size: 1.15,
+            color: "#ffd700", // Color del texto (Nombre)
             transparent: true,
             opacity: 1.0,
             blending: THREE.AdditiveBlending,
@@ -412,6 +426,21 @@ this.coreParticles.rotation.z = -0.25;
         this.uiContainer.style.alignItems = 'center';
         document.body.appendChild(this.uiContainer);
 
+        // Nuevo Overlay oscuro para destacar la carta
+        this.overlay = document.createElement("div");
+        this.overlay.style.position = "absolute";
+        this.overlay.style.top = "0";
+        this.overlay.style.left = "0";
+        this.overlay.style.width = "100%";
+        this.overlay.style.height = "100%";
+        this.overlay.style.background = "rgba(0,0,0,0)";
+        this.overlay.style.backdropFilter = "blur(0px)";
+        this.overlay.style.transition =
+            "background 1.5s ease, backdrop-filter 1.5s ease";
+        this.overlay.style.pointerEvents = "none";
+        this.overlay.style.zIndex = "5";
+        this.uiContainer.appendChild(this.overlay);
+
         this.startBtn = document.createElement('button');
         this.startBtn.innerText = "ABRIR CARTA";
         this.startBtn.style.padding = '15px 40px';
@@ -426,6 +455,8 @@ this.coreParticles.rotation.z = -0.25;
         this.startBtn.style.cursor = 'pointer';
         this.startBtn.style.pointerEvents = 'auto';
         this.startBtn.style.transition = 'transform 0.2s';
+
+        this.startBtn.style.zIndex = "30";
 
         this.startBtn.onmouseover = () => { this.startBtn.style.transform = 'scale(1.05)'; };
         this.startBtn.onmouseout = () => { this.startBtn.style.transform = 'scale(1)'; };
@@ -442,36 +473,85 @@ this.coreParticles.rotation.z = -0.25;
         this.letterScrollContainer.style.display = 'none';
         this.letterScrollContainer.style.pointerEvents = 'auto';
 
+        this.letterScrollContainer.style.zIndex = "20";
+
+        // Div para la carta
         this.letterContent = document.createElement('div');
-        this.letterContent.style.marginTop = '70vh';
-        this.letterContent.style.padding = '0 15% 150px 15%';
+
+        // Posición
+        this.letterContent.style.maxWidth = '900px';
+        this.letterContent.style.margin = '180px auto 120px auto';
+        this.letterContent.style.padding = '60px';
+
+        // Apariencia
+        this.letterContent.style.background = 'rgba(10,18,35,0.42)';
+        this.letterContent.style.backdropFilter = 'blur(18px)';
+        this.letterContent.style.border = '1px solid rgba(255,255,255,0.15)';
+        this.letterContent.style.borderRadius = '30px';
+        this.letterContent.style.boxShadow = '0 20px 80px rgba(0,0,0,0.45)';
+
+        // Texto
         this.letterContent.style.color = '#ffffff';
         this.letterContent.style.fontFamily = '"Courier New", Courier, monospace';
         this.letterContent.style.fontSize = '22px';
-        this.letterContent.style.lineHeight = '2.0';
+        this.letterContent.style.lineHeight = '2';
         this.letterContent.style.textAlign = 'center';
-        this.letterContent.style.textShadow = '0px 4px 15px rgba(0,0,0,0.8)';
+        this.letterContent.style.textShadow = '0 4px 15px rgba(0,0,0,.8)';
 
+        // Animación inicial (opcional)
+        this.letterContent.style.opacity = '0';
+        this.letterContent.style.transform = 'translateY(40px) scale(.96)';
+        this.letterContent.style.transition =
+            'opacity .8s ease, transform .8s ease';
+
+        // Mensaje de la carta
         this.letterContent.innerHTML = `
-            <p>Hola,</p>
-            <p>Quería hacer algo único y diferente para ti en este día tan especial.</p>
-            <p>Gracias por ser mi inspiración, mi apoyo y la persona con la que quiero compartir cada momento.</p>
-            <p>Espero que disfrutes de cada detalle de esta pequeña sorpresa, porque la hice pensando exclusivamente en ti.</p>
-            <br><br><br>
-            <p style="font-size: 16px; color: #aaaaaa;">(Desplázate hacia abajo para ver la galaxia...)</p>
-            <br><br><br>
-            <button id="btn-volver-lobby" style="
-                padding: 12px 25px; 
-                font-family: inherit; 
-                cursor: pointer; 
-                background: rgba(5,8,20,.55); 
-                color: white; 
-                border: 2px solid white; 
-                border-radius: 20px;
-                font-weight:bold;
-                transition: all 0.3s;
-            ">VOLVER AL PASILLO</button>
-        `;
+        <p>Hola,</p>
+
+        <p>
+            text.
+        </p>
+
+        <p>
+            text.
+        </p>
+
+        <p>
+            text.
+        </p>
+
+        <br><br>
+
+        <p style="
+            font-size:16px;
+            color:#bbbbbb;
+            opacity:.8;
+        ">
+            (Desplázate hacia abajo para ver la galaxia...)
+        </p>
+
+        <br><br>
+
+    <button id="btn-volver-lobby" style="
+        padding:14px 28px;
+        font-family:inherit;
+        font-size:16px;
+        font-weight:bold;
+        cursor:pointer;
+
+        color:white;
+
+        background:rgba(255,255,255,.08);
+        border:1px solid rgba(255,255,255,.25);
+        border-radius:999px;
+
+        backdrop-filter:blur(10px);
+
+        transition:.3s;
+    ">
+        VOLVER AL PASILLO
+    </button>
+`;
 
         this.letterScrollContainer.appendChild(this.letterContent);
         this.uiContainer.appendChild(this.letterScrollContainer);
@@ -480,8 +560,18 @@ this.coreParticles.rotation.z = -0.25;
             this.startBtn.style.display = 'none';
             this.isFormingText = true;
 
+            this.isLetterOpen = true;
+
+            this.overlay.style.background = "rgba(2,8,20,.38)";
+            this.overlay.style.backdropFilter = "blur(4px)";
+
             setTimeout(() => {
                 this.letterScrollContainer.style.display = 'block';
+                requestAnimationFrame(() => {
+                    this.letterContent.style.opacity = '1';
+                    this.letterContent.style.transform =
+                        'translateY(0) scale(1)';
+                });
                 const btnVolver = document.getElementById('btn-volver-lobby');
                 btnVolver.onmouseover = () => { btnVolver.style.background = 'white'; btnVolver.style.color = 'black'; };
                 btnVolver.onmouseout = () => { btnVolver.style.background = 'rgba(255,255,255,0.1)'; btnVolver.style.color = 'white'; };
@@ -489,7 +579,7 @@ this.coreParticles.rotation.z = -0.25;
                 btnVolver.addEventListener('click', () => {
                     if (this.onReturnToLobby) this.onReturnToLobby();
                 });
-            }, 2500);
+            }, 4500);
         });
     }
 
@@ -606,13 +696,30 @@ this.coreParticles.rotation.z = -0.25;
             }
         });
 
+        if (this.isLetterOpen) {
+            this.backgroundFade += (0.60 - this.backgroundFade) * 0.02;
+            this.universeParticles.material.opacity = this.backgroundFade;
+            this.coreParticles.material.opacity =
+                Math.min(this.backgroundFade, 0.35);
+            this.ambientStars.material.opacity =
+                Math.min(this.backgroundFade * 0.5, 0.08);
+        }
+
         if (this.isFormingText && this.particles) {
+            // posicion de destino del nombre 
+            const target = {
+                x: 0,
+                y: 9,
+                z: 0
+            };
+
             // 1. Interpolamos la posición y rotación del contenedor a 0 (frente a la cámara)
             this.particles.rotation.x += (0 - this.particles.rotation.x) * 0.02;
             this.particles.rotation.z += (0 - this.particles.rotation.z) * 0.02;
-            this.particles.position.x += (0 - this.particles.position.x) * 0.02;
-            this.particles.position.y += (0 - this.particles.position.y) * 0.02;
-            this.particles.position.z += (0 - this.particles.position.z) * 0.02;
+
+            this.particles.position.x += (target.x - this.particles.position.x) * 0.02;
+            this.particles.position.y += (target.y - this.particles.position.y) * 0.02;
+            this.particles.position.z += (target.z - this.particles.position.z) * 0.02;
 
             // 2. Interpolamos las posiciones individuales de las partículas para formar las letras
             const positions = this.particles.geometry.attributes.position.array;
