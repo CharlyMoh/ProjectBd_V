@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { SceneManager } from './Core/SceneManager.js';
 import { BirthdayLobby } from './World/BirthdayLobby.js';
-import { LetterScene } from './World/LetterScene.js'; // IMPORTAMOS LA NUEVA ESCENA
+import { LetterScene } from './World/LetterScene.js'; 
+import { Stadium } from './World/Stadium.js';
 
 const canvas = document.querySelector('canvas.webgl');
 const uiContainer = document.getElementById('ui-container');
@@ -11,7 +12,9 @@ const sceneManager = new SceneManager(canvas);
 
 const aspect = window.innerWidth / window.innerHeight;
 
-// --- CÁMARA 2D PARA EL PASILLO ---
+// --- CÁMARAS ---
+
+// 1. Cámara 2D para el pasillo
 const viewSize = 14; 
 const orthoCamera = new THREE.OrthographicCamera(
     (viewSize * aspect) / -2, (viewSize * aspect) / 2, 
@@ -20,11 +23,9 @@ const orthoCamera = new THREE.OrthographicCamera(
 orthoCamera.position.set(0, 1.5, 10);
 orthoCamera.lookAt(0, 1.5, 0);
 
-// --- CÁMARA 3D PARA EL UNIVERSO ---
-const perspCamera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
-perspCamera.position.set(0, 0, 30);
+// 2. Cámara 3D para el Universo y el Concierto
+const perspCamera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
 
-// Inicializamos con la cámara 2D
 sceneManager.camera = orthoCamera;
 
 if (sceneManager.controls) {
@@ -34,33 +35,53 @@ if (sceneManager.controls) {
 const ambientLight = new THREE.AmbientLight('#ffffff', 1.2); 
 sceneManager.scene.add(ambientLight);
 
-// Instancias de nuestras escenas
+// Instancias de escenas
 let lobby = new BirthdayLobby(sceneManager.scene, sceneManager.camera);
 let letterScene = null;
+let stadiumScene = null;
 
-// EVENTO: Transición del Pasillo al Universo
+// --- EVENTO 1: Transición a la Carta (Puerta Izquierda) ---
 lobby.onEnterLetter = () => {
-    // Escondemos el pasillo
     lobby.lobbyGroup.visible = false;
     
-    // Cambiamos a la cámara 3D
+    perspCamera.position.set(0, 0, 30);
+    perspCamera.lookAt(0, 0, 0);
     sceneManager.camera = perspCamera;
     
-    // Creamos el universo de partículas
     letterScene = new LetterScene(sceneManager.scene, sceneManager.camera);
     
-    // Evento por si queremos volver de la carta al pasillo
     letterScene.onReturnToLobby = () => {
         letterScene.destroy();
         letterScene = null;
         sceneManager.camera = orthoCamera;
         lobby.lobbyGroup.visible = true;
-        lobby.isTransitioning = false; // Permitir presionar puertas de nuevo
-        // Resetear posición de personaje ligeramente para que no active la puerta al instante
+        lobby.isTransitioning = false;
         lobby.player.position.x += 2; 
     };
 };
 
+// --- EVENTO 2: Transición al Concierto de BTS (Puerta Derecha) ---
+// --- TRANSICIÓN AL CONCIERTO DE BTS (PUERTA DERECHA) ---
+lobby.onEnterStadium = () => {
+    sceneManager.scene.fog = null;
+    lobby.lobbyGroup.visible = false;
+    
+    sceneManager.camera = perspCamera;
+    
+    // Le pasamos (scene, camera) a la instancia de Stadium
+    stadiumScene = new Stadium(sceneManager.scene, sceneManager.camera);
+    
+    stadiumScene.onReturnToLobby = () => {
+        stadiumScene.destroy();
+        stadiumScene = null;
+        sceneManager.camera = orthoCamera;
+        lobby.lobbyGroup.visible = true;
+        lobby.isTransitioning = false;
+        lobby.player.position.x -= 2; 
+    };
+};
+
+// Bucle principal de renderizado
 const clock = new THREE.Clock();
 
 const tick = () => {
@@ -72,6 +93,10 @@ const tick = () => {
     
     if (letterScene) {
         letterScene.update(elapsedTime);
+    }
+
+    if (stadiumScene) {
+        stadiumScene.update(elapsedTime);
     }
 
     sceneManager.update();

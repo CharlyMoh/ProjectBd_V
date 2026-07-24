@@ -1,38 +1,69 @@
 import * as THREE from 'three';
 
 export class Stadium {
-    constructor(scene, videoTexture) {
+    constructor(scene, camera) {
         this.scene = scene;
-        this.videoTexture = videoTexture; // Recibimos la textura del video desde main
+        this.camera = camera;
+
+        this.stadiumGroup = new THREE.Group();
+        this.scene.add(this.stadiumGroup);
+
+        this.onReturnToLobby = null;
+
+        // --- VARIABLES DE CÁMARA ---
+        this.currentCameraMode = 'dron'; // Modos: 'dron', 'vip', 'escenario'
+        this.targetCamPos = new THREE.Vector3();
+        this.targetLookAt = new THREE.Vector3();
+        this.currentLookAt = new THREE.Vector3(0, 4, 0); // Donde mira actualmente
+
+        this.videoTexture = this.createVideoTexture();
         
         this.createCentralStage();
         this.create360Screens();
         this.createArmyBombOcean360();
+        this.initHTML();
+    }
+
+    createVideoTexture() {
+        this.video = document.createElement('video');
+        this.video.src = '/bts-concert.mp4'; 
+        this.video.load();
+        this.video.loop = true;
+        this.video.muted = true; 
+        this.video.playsInline = true;
+        this.video.setAttribute('playsinline', '');
+
+        this.video.play().catch(error => {
+            console.log("Esperando interacción para reproducir video:", error);
+        });
+
+        const texture = new THREE.VideoTexture(this.video);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        
+        return texture;
     }
 
     createCentralStage() {
-        // 1. Escenario circular principal en el puro centro del estadio
         const stageGeo = new THREE.CylinderGeometry(8, 8, 0.8, 48);
         const stageMat = new THREE.MeshStandardMaterial({ color: '#151515', roughness: 0.5 });
         const centralStage = new THREE.Mesh(stageGeo, stageMat);
         centralStage.position.set(0, 0.4, 0);
-        this.scene.add(centralStage);
+        this.stadiumGroup.add(centralStage);
 
-        // 2. Pasarelas en "X" (Rotadas 45 grados) para coincidir con el plano
         const runwayMat = new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.6 });
         const runwayGeo = new THREE.BoxGeometry(4, 0.7, 34); 
         
-        // Pasarela Diagonal 1 (\)
         const runway1 = new THREE.Mesh(runwayGeo, runwayMat);
         runway1.position.set(0, 0.35, 0);
         runway1.rotation.y = Math.PI / 4;
-        this.scene.add(runway1);
+        this.stadiumGroup.add(runway1);
 
-        // Pasarela Diagonal 2 (/)
         const runway2 = new THREE.Mesh(runwayGeo, runwayMat);
         runway2.position.set(0, 0.35, 0);
         runway2.rotation.y = -Math.PI / 4;
-        this.scene.add(runway2);
+        this.stadiumGroup.add(runway2);
     }
 
     create360Screens() {
@@ -43,82 +74,53 @@ export class Stadium {
             side: THREE.DoubleSide
         });
 
-        // 1. DIMENSIONES EXACTAS BASADAS EN TU PLANO AÉREO
-        const widthX = 12;      // Ancho de las pantallas frontales (Norte-Sur)
-        const depthZ = 16;      // Largo de las pantallas laterales (Este-Oeste, es más largo)
-        const height = 6.5;     // Altura compartida de todas las pantallas
-        const elevation = 12;   // Altura sobre el escenario principal
-
-        const wingLength = 12;  // Longitud de las pantallas diagonales rojas que dibujaste
+        const widthX = 12;      
+        const depthZ = 16;      
+        const height = 6.5;     
+        const elevation = 12;   
+        const wingLength = 12;  
         const wingHalf = wingLength / 2;
 
-        // --- 2. EL NÚCLEO CENTRAL RECTANGULAR ---
         const geoNorteSur = new THREE.PlaneGeometry(widthX, height);
         const geoEsteOeste = new THREE.PlaneGeometry(depthZ, height);
 
-        // Pantalla Norte
         const screenN = new THREE.Mesh(geoNorteSur, screenMat);
         screenN.position.set(0, elevation, -depthZ / 2);
 
-        // Pantalla Sur
         const screenS = new THREE.Mesh(geoNorteSur, screenMat);
         screenS.position.set(0, elevation, depthZ / 2);
         screenS.rotation.y = Math.PI;
 
-        // Pantalla Este
         const screenE = new THREE.Mesh(geoEsteOeste, screenMat);
         screenE.position.set(widthX / 2, elevation, 0);
         screenE.rotation.y = -Math.PI / 2;
 
-        // Pantalla Oeste
         const screenW = new THREE.Mesh(geoEsteOeste, screenMat);
         screenW.position.set(-widthX / 2, elevation, 0);
         screenW.rotation.y = Math.PI / 2;
 
         this.screensGroup.add(screenN, screenS, screenE, screenW);
 
-        // --- 3. LAS 4 EXTENSIONES DIAGONALES DESDE LAS ESQUINAS ("X") ---
         const wingGeo = new THREE.PlaneGeometry(wingLength, height);
 
-        // Esquina Nor-Este (Arriba a la derecha)
         const wingNE = new THREE.Mesh(wingGeo, screenMat);
-        wingNE.position.set(
-            (widthX / 2) + wingHalf * Math.cos(-Math.PI / 4),
-            elevation,
-            (-depthZ / 2) + wingHalf * Math.sin(-Math.PI / 4)
-        );
+        wingNE.position.set((widthX / 2) + wingHalf * Math.cos(-Math.PI / 4), elevation, (-depthZ / 2) + wingHalf * Math.sin(-Math.PI / 4));
         wingNE.rotation.y = Math.PI / 4;
 
-        // Esquina Nor-Oeste (Arriba a la izquierda)
         const wingNW = new THREE.Mesh(wingGeo, screenMat);
-        wingNW.position.set(
-            (-widthX / 2) + wingHalf * Math.cos(-3 * Math.PI / 4),
-            elevation,
-            (-depthZ / 2) + wingHalf * Math.sin(-3 * Math.PI / 4)
-        );
+        wingNW.position.set((-widthX / 2) + wingHalf * Math.cos(-3 * Math.PI / 4), elevation, (-depthZ / 2) + wingHalf * Math.sin(-3 * Math.PI / 4));
         wingNW.rotation.y = -Math.PI / 4;
 
-        // Esquina Sur-Este (Abajo a la derecha)
         const wingSE = new THREE.Mesh(wingGeo, screenMat);
-        wingSE.position.set(
-            (widthX / 2) + wingHalf * Math.cos(Math.PI / 4),
-            elevation,
-            (depthZ / 2) + wingHalf * Math.sin(Math.PI / 4)
-        );
+        wingSE.position.set((widthX / 2) + wingHalf * Math.cos(Math.PI / 4), elevation, (depthZ / 2) + wingHalf * Math.sin(Math.PI / 4));
         wingSE.rotation.y = -Math.PI / 4;
 
-        // Esquina Sur-Oeste (Abajo a la izquierda)
         const wingSW = new THREE.Mesh(wingGeo, screenMat);
-        wingSW.position.set(
-            (-widthX / 2) + wingHalf * Math.cos(3 * Math.PI / 4),
-            elevation,
-            (depthZ / 2) + wingHalf * Math.sin(3 * Math.PI / 4)
-        );
+        wingSW.position.set((-widthX / 2) + wingHalf * Math.cos(3 * Math.PI / 4), elevation, (depthZ / 2) + wingHalf * Math.sin(3 * Math.PI / 4));
         wingSW.rotation.y = Math.PI / 4;
 
-        // Añadimos las alas y metemos todo al escenario
         this.screensGroup.add(wingNE, wingNW, wingSE, wingSW);
-        this.scene.add(this.screensGroup);
+        this.stadiumGroup.add(this.screensGroup);
     }
 
     createArmyBombOcean360() {
@@ -129,7 +131,6 @@ export class Stadium {
 
         let i = 0;
         
-        // Bucle que filtra y acomoda las luces según el plano del tour
         while (i < count) {
             const x = (Math.random() - 0.5) * 100;
             const z = (Math.random() - 0.5) * 110;
@@ -137,23 +138,18 @@ export class Stadium {
             let y = 0;
             let valid = false;
 
-            // --- ZONA 1: EXCLUSIÓN (Escenario en X vacío) ---
             if (distCenter < 12) continue; 
-            if (Math.abs(x - z) < 6 && distCenter < 22) continue; // Diagonal \
-            if (Math.abs(x + z) < 6 && distCenter < 22) continue; // Diagonal /
+            if (Math.abs(x - z) < 6 && distCenter < 22) continue; 
+            if (Math.abs(x + z) < 6 && distCenter < 22) continue; 
 
-            // --- ZONA 2: PLATINO (Cancha nivelada) ---
             if (Math.abs(x) < 23 && Math.abs(z) < 28) {
                 y = 0.2 + Math.random() * 0.5;
                 valid = true;
             }
-            // --- ZONA 3: PASILLO DE SEPARACIÓN ---
             else if (Math.abs(x) < 26 && Math.abs(z) < 32) {
                 continue; 
             }
-            // --- ZONA 4: GRADAS POLIGONALES (Elevación) ---
             else {
-                // Corte de las esquinas extremas para dar forma hexagonal
                 if (Math.abs(x) + Math.abs(z) > 80) continue; 
 
                 const distX = Math.max(Math.abs(x) - 26, 0);
@@ -189,37 +185,150 @@ export class Stadium {
         });
 
         this.lightOcean = new THREE.Points(geometry, this.pointsMaterial);
-        this.scene.add(this.lightOcean);
+        this.stadiumGroup.add(this.lightOcean);
     }
 
-    // Efecto de cambios de color sincrónicos globales (Rojo, Cian, Blanco, Morado)
-    update(time) {
-        const colorsAttribute = this.lightOcean.geometry.attributes.color;
-        
-        // Simular los cambios drásticos de color de las fotos (Toma 2: Rojo, Toma 4: Verde/Cian)
-        const cycle = Math.floor(time / 6) % 4; // Cambia de patrón cada 6 segundos
-        
-        for (let i = 0; i < colorsAttribute.count; i++) {
-            const wave = Math.sin(time * 3 + i * 0.02);
+    initHTML() {
+        // 1. Botón "VOLVER AL PASILLO" (Arriba a la izquierda)
+        this.uiContainer = document.createElement('div');
+        this.uiContainer.style.cssText = "position: absolute; top: 20px; left: 20px; z-index: 9999;";
 
-            if (cycle === 0) {
-                // FOTO 2: Todo el estadio en un océano Rojo ardiente
-                if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 1.0, 1.0); // Destellos blancos
-                else colorsAttribute.setXYZ(i, 0.9, 0.0, 0.0);
-            } else if (cycle === 1) {
-                // FOTO 4: Océano Cian / Verde Esmeralda místico
-                if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 1.0, 1.0);
-                else colorsAttribute.setXYZ(i, 0.0, 0.8, 0.5);
-            } else if (cycle === 2) {
-                // FOTO 3: Océano Plateado / Blanco destellante masivo
-                if (wave > 0.2) colorsAttribute.setXYZ(i, 0.9, 0.9, 1.0);
-                else colorsAttribute.setXYZ(i, 0.2, 0.2, 0.4);
+        const btnVolver = document.createElement('button');
+        btnVolver.innerText = "← VOLVER AL PASILLO";
+        btnVolver.style.cssText = "padding: 12px 24px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(10, 0, 20, 0.8); color: #00d2ff; border: 2px solid #00d2ff; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(0,210,255,0.4); transition: all 0.3s;";
+
+        btnVolver.onmouseover = () => { btnVolver.style.background = '#00d2ff'; btnVolver.style.color = '#000000'; };
+        btnVolver.onmouseout = () => { btnVolver.style.background = 'rgba(10, 0, 20, 0.8)'; btnVolver.style.color = '#00d2ff'; };
+
+        btnVolver.addEventListener('click', () => {
+            if (this.onReturnToLobby) this.onReturnToLobby();
+        });
+
+        this.uiContainer.appendChild(btnVolver);
+        document.body.appendChild(this.uiContainer);
+
+        // 2. Barra de Cámaras (Centrada Abajo)
+        this.cameraControlsContainer = document.createElement('div');
+        this.cameraControlsContainer.style.cssText = "position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; gap: 15px; align-items: center;";
+
+        // Guardamos referencias de los botones para manipular su visibilidad
+        this.camButtons = {};
+
+        const createCamBtn = (text, mode) => {
+            const btn = document.createElement('button');
+            btn.innerText = text;
+            btn.style.cssText = "padding: 10px 22px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; background: rgba(10, 0, 20, 0.85); color: #ff00cc; border: 2px solid #ff00cc; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,204,0.3); transition: all 0.3s;";
+            
+            btn.onmouseover = () => { btn.style.background = '#ff00cc'; btn.style.color = '#000000'; };
+            btn.onmouseout = () => { btn.style.background = 'rgba(10, 0, 20, 0.85)'; btn.style.color = '#ff00cc'; };
+            
+            btn.onclick = () => { 
+                this.currentCameraMode = mode;
+                this.updateCameraButtons(); // Actualiza la interfaz al hacer clic
+            };
+
+            this.camButtons[mode] = btn;
+            return btn;
+        };
+
+        this.cameraControlsContainer.appendChild(createCamBtn("DRON", 'dron'));
+        this.cameraControlsContainer.appendChild(createCamBtn("VIP", 'vip'));
+        this.cameraControlsContainer.appendChild(createCamBtn("ESCENARIO", 'escenario'));
+
+        document.body.appendChild(this.cameraControlsContainer);
+
+        // Ocultamos el botón de la cámara inicial ('dron')
+        this.updateCameraButtons();
+    }
+
+    updateCameraButtons() {
+        if (!this.camButtons) return;
+        
+        Object.keys(this.camButtons).forEach(mode => {
+            if (mode === this.currentCameraMode) {
+                this.camButtons[mode].style.display = 'none'; // Oculta la opción actual
             } else {
-                // Color Clásico: El representativo Morado Borahae
-                if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 0.5, 1.0);
-                else colorsAttribute.setXYZ(i, 0.4, 0.0, 0.8);
+                this.camButtons[mode].style.display = 'inline-block'; // Muestra las demás opciones
             }
+        });
+    }
+
+    update(time) {
+        // --- 1. LÓGICA DE CÁMARAS CINEMÁTICAS ---
+        if (this.camera) {
+            // Establecemos las coordenadas deseadas según el modo seleccionado
+            if (this.currentCameraMode === 'dron') {
+                const speed = 0.12; 
+                const radius = 68;
+                this.targetCamPos.set(
+                    Math.sin(time * speed) * radius,
+                    32 + Math.sin(time * 0.3) * 6,
+                    Math.cos(time * speed) * radius
+                );
+                this.targetLookAt.set(0, 4, 0); // Mirando al centro
+                
+            } else if (this.currentCameraMode === 'vip') {
+                // En primera fila zona platino, con un ligero bamboleo 
+                this.targetCamPos.set(0, 3 + Math.sin(time * 2) * 0.15, 25);
+                this.targetLookAt.set(0, 10, 0); // Mirando hacia arriba a las pantallas
+                
+            } else if (this.currentCameraMode === 'escenario') {
+                // Parado en el centro del escenario, mirando lentamente alrededor
+                this.targetCamPos.set(0, 4, 6); // Borde del escenario
+                const panX = Math.sin(time * 0.5) * 30; // Paneo suave de izquierda a derecha
+                this.targetLookAt.set(panX, 2, 40); // Mirando hacia la multitud
+            }
+
+            // MAGIA CINE: Interpolación suave (Lerp) hacia el objetivo
+            this.camera.position.lerp(this.targetCamPos, 0.03); // suavidad del "vuelo"
+            
+            // Interpolamos hacia dónde mira la cámara
+            this.currentLookAt.lerp(this.targetLookAt, 0.04);
+            this.camera.lookAt(this.currentLookAt);
         }
-        colorsAttribute.needsUpdate = true;
+
+        // --- 2. CAMBIO SINCRO DE COLORES DEL OCEANO ARMY BOMB ---
+        if (this.lightOcean) {
+            const colorsAttribute = this.lightOcean.geometry.attributes.color;
+            const cycle = Math.floor(time / 6) % 4; 
+            
+            for (let i = 0; i < colorsAttribute.count; i++) {
+                const wave = Math.sin(time * 3 + i * 0.02);
+
+                if (cycle === 0) {
+                    if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 1.0, 1.0);
+                    else colorsAttribute.setXYZ(i, 0.9, 0.0, 0.0);
+                } else if (cycle === 1) {
+                    if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 1.0, 1.0);
+                    else colorsAttribute.setXYZ(i, 0.0, 0.8, 0.5);
+                } else if (cycle === 2) {
+                    if (wave > 0.2) colorsAttribute.setXYZ(i, 0.9, 0.9, 1.0);
+                    else colorsAttribute.setXYZ(i, 0.2, 0.2, 0.4);
+                } else {
+                    if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 0.5, 1.0);
+                    else colorsAttribute.setXYZ(i, 0.4, 0.0, 0.8);
+                }
+            }
+            colorsAttribute.needsUpdate = true;
+        }
+    }
+
+    destroy() {
+        if (this.video) {
+            this.video.pause();
+            this.video.src = '';
+            this.video.load();
+            this.video.remove();
+        }
+        
+        this.scene.remove(this.stadiumGroup);
+        
+        // Limpiamos los dos contenedores de la UI al salir de la escena
+        if (this.uiContainer) {
+            this.uiContainer.remove();
+        }
+        if (this.cameraControlsContainer) {
+            this.cameraControlsContainer.remove();
+        }
     }
 }

@@ -19,6 +19,7 @@ export class BirthdayLobby {
         this.isPromptVisible = false;   
         this.isTransitioning = false;
         this.onEnterLetter = null; // Callback vinculado con main.js
+        this.onEnterStadium = null; // Callback vinculado con main.js
 
         this.textureLoader = new THREE.TextureLoader();
 
@@ -297,8 +298,9 @@ export class BirthdayLobby {
                 this.interactionPromptLabel.position.y = 2.0; 
                 this.isPromptVisible = true;
                 
-                if (this.keys.up) {
-                    console.log("¡Cargando Estadio de BTS!");
+                if (this.keys.up && !this.isTransitioning) {
+                    this.isTransitioning = true; 
+                    if(this.onEnterStadium) this.onEnterStadium(); 
                 }
             }
         }
