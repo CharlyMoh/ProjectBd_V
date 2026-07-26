@@ -129,7 +129,7 @@ export class BirthdayLobby {
 
     createRoom2() {
         const room = new THREE.Group();
-        this.addTextLabel(room, "ELIGE UNA PUERTA!", 0, 3.5);
+        this.addTextLabel(room, "ELIGE UNA PUERTA", 0, 3.5);
         const doorTex = this.loadPixelTexture('/door.png');
         const doorGeo = new THREE.PlaneGeometry(3, 4.1);
 
@@ -138,14 +138,14 @@ export class BirthdayLobby {
         this.doorLetter = new THREE.Mesh(doorGeo, doorLeftMat);
         this.doorLetter.position.set(-4, -1.0, -1.0);
         room.add(this.doorLetter);
-        this.addTextLabel(room, "CARTA", -4, 1.5);
+        this.addTextLabel(room, "1", -4, 1.5);
 
         // Puerta 2
         const doorRightMat = new THREE.MeshBasicMaterial({ map: doorTex, transparent: true, alphaTest: 0.5 });
         this.doorStadium = new THREE.Mesh(doorGeo, doorRightMat);
         this.doorStadium.position.set(4, -1.0, -1.0);
         room.add(this.doorStadium);
-        this.addTextLabel(room, "CONCIERTO", 4, 1.5);
+        this.addTextLabel(room, "2", 4, 1.5);
 
         // --- TUS POSICIONES DE GLOBOS PREFERIDAS PARA LA ROOM 2 ---
         const balloonPositionsX = [-9, -6, -2, 2, 6, 9]; 

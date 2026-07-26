@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Pyrotechnics } from '../Effects/Pyrotechnics.js'; // Importamos el módulo
 
 export class Stadium {
     constructor(scene, camera) {
@@ -10,14 +11,17 @@ export class Stadium {
 
         this.onReturnToLobby = null;
 
-        // --- VARIABLES DE CÁMARA ---
-        this.currentCameraMode = 'dron'; // Modos: 'dron', 'vip', 'escenario'
+        // --- CÁMARAS Y NAVEGACIÓN ---
+        this.currentCameraMode = 'dron';
         this.targetCamPos = new THREE.Vector3();
         this.targetLookAt = new THREE.Vector3();
-        this.currentLookAt = new THREE.Vector3(0, 4, 0); // Donde mira actualmente
+        this.currentLookAt = new THREE.Vector3(0, 4, 0);
+
+        // --- EFECTO DE PIROTECNIA ---
+        this.pyrotechnics = new Pyrotechnics(this.stadiumGroup);
 
         this.videoTexture = this.createVideoTexture();
-        
+
         this.createCentralStage();
         this.create360Screens();
         this.createArmyBombOcean360();
@@ -26,10 +30,10 @@ export class Stadium {
 
     createVideoTexture() {
         this.video = document.createElement('video');
-        this.video.src = '/bts-concert.mp4'; 
+        this.video.src = '/bts-concert.mp4';
         this.video.load();
         this.video.loop = true;
-        this.video.muted = true; 
+        this.video.muted = true;
         this.video.playsInline = true;
         this.video.setAttribute('playsinline', '');
 
@@ -41,7 +45,7 @@ export class Stadium {
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
-        
+
         return texture;
     }
 
@@ -53,8 +57,8 @@ export class Stadium {
         this.stadiumGroup.add(centralStage);
 
         const runwayMat = new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.6 });
-        const runwayGeo = new THREE.BoxGeometry(4, 0.7, 34); 
-        
+        const runwayGeo = new THREE.BoxGeometry(4, 0.7, 34);
+
         const runway1 = new THREE.Mesh(runwayGeo, runwayMat);
         runway1.position.set(0, 0.35, 0);
         runway1.rotation.y = Math.PI / 4;
@@ -74,11 +78,11 @@ export class Stadium {
             side: THREE.DoubleSide
         });
 
-        const widthX = 12;      
-        const depthZ = 16;      
-        const height = 6.5;     
-        const elevation = 12;   
-        const wingLength = 12;  
+        const widthX = 12;
+        const depthZ = 16;
+        const height = 6.5;
+        const elevation = 12;
+        const wingLength = 12;
         const wingHalf = wingLength / 2;
 
         const geoNorteSur = new THREE.PlaneGeometry(widthX, height);
@@ -124,38 +128,38 @@ export class Stadium {
     }
 
     createArmyBombOcean360() {
-        const count = 12000; 
+        const count = 12000;
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
         const colorPurple = new THREE.Color('#7f00ff');
 
         let i = 0;
-        
+
         while (i < count) {
             const x = (Math.random() - 0.5) * 100;
             const z = (Math.random() - 0.5) * 110;
-            const distCenter = Math.sqrt(x*x + z*z);
+            const distCenter = Math.sqrt(x * x + z * z);
             let y = 0;
             let valid = false;
 
-            if (distCenter < 12) continue; 
-            if (Math.abs(x - z) < 6 && distCenter < 22) continue; 
-            if (Math.abs(x + z) < 6 && distCenter < 22) continue; 
+            if (distCenter < 12) continue;
+            if (Math.abs(x - z) < 6 && distCenter < 22) continue;
+            if (Math.abs(x + z) < 6 && distCenter < 22) continue;
 
             if (Math.abs(x) < 23 && Math.abs(z) < 28) {
                 y = 0.2 + Math.random() * 0.5;
                 valid = true;
             }
             else if (Math.abs(x) < 26 && Math.abs(z) < 32) {
-                continue; 
+                continue;
             }
             else {
-                if (Math.abs(x) + Math.abs(z) > 80) continue; 
+                if (Math.abs(x) + Math.abs(z) > 80) continue;
 
                 const distX = Math.max(Math.abs(x) - 26, 0);
                 const distZ = Math.max(Math.abs(z) - 32, 0);
-                const distEdge = Math.sqrt(distX*distX + distZ*distZ);
-                
+                const distEdge = Math.sqrt(distX * distX + distZ * distZ);
+
                 y = 2 + (distEdge * 0.7) + (Math.random() * 1.5);
                 valid = true;
             }
@@ -181,7 +185,7 @@ export class Stadium {
             vertexColors: true,
             transparent: true,
             opacity: 0.85,
-            blending: THREE.AdditiveBlending 
+            blending: THREE.AdditiveBlending
         });
 
         this.lightOcean = new THREE.Points(geometry, this.pointsMaterial);
@@ -189,7 +193,7 @@ export class Stadium {
     }
 
     initHTML() {
-        // 1. Botón "VOLVER AL PASILLO" (Arriba a la izquierda)
+        // 1. Botón VOLVER AL PASILLO
         this.uiContainer = document.createElement('div');
         this.uiContainer.style.cssText = "position: absolute; top: 20px; left: 20px; z-index: 9999;";
 
@@ -207,24 +211,23 @@ export class Stadium {
         this.uiContainer.appendChild(btnVolver);
         document.body.appendChild(this.uiContainer);
 
-        // 2. Barra de Cámaras (Centrada Abajo)
+        // 2. Barra de Cámaras y Pirotecnia (Centrada Abajo)
         this.cameraControlsContainer = document.createElement('div');
         this.cameraControlsContainer.style.cssText = "position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; gap: 15px; align-items: center;";
 
-        // Guardamos referencias de los botones para manipular su visibilidad
         this.camButtons = {};
 
         const createCamBtn = (text, mode) => {
             const btn = document.createElement('button');
             btn.innerText = text;
             btn.style.cssText = "padding: 10px 22px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; background: rgba(10, 0, 20, 0.85); color: #ff00cc; border: 2px solid #ff00cc; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,204,0.3); transition: all 0.3s;";
-            
+
             btn.onmouseover = () => { btn.style.background = '#ff00cc'; btn.style.color = '#000000'; };
             btn.onmouseout = () => { btn.style.background = 'rgba(10, 0, 20, 0.85)'; btn.style.color = '#ff00cc'; };
-            
-            btn.onclick = () => { 
+
+            btn.onclick = () => {
                 this.currentCameraMode = mode;
-                this.updateCameraButtons(); // Actualiza la interfaz al hacer clic
+                this.updateCameraButtons();
             };
 
             this.camButtons[mode] = btn;
@@ -235,20 +238,38 @@ export class Stadium {
         this.cameraControlsContainer.appendChild(createCamBtn("VIP", 'vip'));
         this.cameraControlsContainer.appendChild(createCamBtn("ESCENARIO", 'escenario'));
 
-        document.body.appendChild(this.cameraControlsContainer);
+        // BOTÓN PROVISIONAL DE PIROTECNIA
+        const btnPyro = document.createElement('button');
+        btnPyro.innerText = "TEST PIROTECNIA";
+        btnPyro.style.cssText = "padding: 10px 22px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; background: rgba(10, 0, 20, 0.85); color: #ffbe00; border: 2px solid #ffbe00; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,190,0,0.4); transition: all 0.3s;";
+        btnPyro.onmouseover = () => { btnPyro.style.background = '#ffbe00'; btnPyro.style.color = '#000000'; };
+        btnPyro.onmouseout = () => { btnPyro.style.background = 'rgba(10, 0, 20, 0.85)'; btnPyro.style.color = '#ffbe00'; };
 
-        // Ocultamos el botón de la cámara inicial ('dron')
+        // Llamada delegada al módulo de pirotecnia
+        btnPyro.onclick = () => {
+
+            // Cambiar la cámara automáticamente 
+            this.currentCameraMode = 'dron';
+            this.updateCameraButtons();
+
+            // Iniciar el show pirotécnico 
+            this.pyrotechnics.startGrandShow();
+        };
+
+        this.cameraControlsContainer.appendChild(btnPyro);
+
+        document.body.appendChild(this.cameraControlsContainer);
         this.updateCameraButtons();
     }
 
     updateCameraButtons() {
         if (!this.camButtons) return;
-        
+
         Object.keys(this.camButtons).forEach(mode => {
             if (mode === this.currentCameraMode) {
-                this.camButtons[mode].style.display = 'none'; // Oculta la opción actual
+                this.camButtons[mode].style.display = 'none';
             } else {
-                this.camButtons[mode].style.display = 'inline-block'; // Muestra las demás opciones
+                this.camButtons[mode].style.display = 'inline-block';
             }
         });
     }
@@ -256,42 +277,41 @@ export class Stadium {
     update(time) {
         // --- 1. LÓGICA DE CÁMARAS CINEMÁTICAS ---
         if (this.camera) {
-            // Establecemos las coordenadas deseadas según el modo seleccionado
             if (this.currentCameraMode === 'dron') {
-                const speed = 0.12; 
+                const speed = 0.12;
                 const radius = 68;
                 this.targetCamPos.set(
                     Math.sin(time * speed) * radius,
                     32 + Math.sin(time * 0.3) * 6,
                     Math.cos(time * speed) * radius
                 );
-                this.targetLookAt.set(0, 4, 0); // Mirando al centro
-                
+                this.targetLookAt.set(0, 4, 0);
+
             } else if (this.currentCameraMode === 'vip') {
-                // En primera fila zona platino, con un ligero bamboleo 
                 this.targetCamPos.set(0, 3 + Math.sin(time * 2) * 0.15, 25);
-                this.targetLookAt.set(0, 10, 0); // Mirando hacia arriba a las pantallas
-                
+                this.targetLookAt.set(0, 10, 0);
+
             } else if (this.currentCameraMode === 'escenario') {
-                // Parado en el centro del escenario, mirando lentamente alrededor
-                this.targetCamPos.set(0, 4, 6); // Borde del escenario
-                const panX = Math.sin(time * 0.5) * 30; // Paneo suave de izquierda a derecha
-                this.targetLookAt.set(panX, 2, 40); // Mirando hacia la multitud
+                this.targetCamPos.set(0, 4, 6);
+                const panX = Math.sin(time * 0.5) * 30;
+                this.targetLookAt.set(panX, 2, 40);
             }
 
-            // MAGIA CINE: Interpolación suave (Lerp) hacia el objetivo
-            this.camera.position.lerp(this.targetCamPos, 0.03); // suavidad del "vuelo"
-            
-            // Interpolamos hacia dónde mira la cámara
+            this.camera.position.lerp(this.targetCamPos, 0.03);
             this.currentLookAt.lerp(this.targetLookAt, 0.04);
             this.camera.lookAt(this.currentLookAt);
         }
 
-        // --- 2. CAMBIO SINCRO DE COLORES DEL OCEANO ARMY BOMB ---
+        // --- 2. ACTUALIZACIÓN DEL MÓDULO DE PIROTECNIA ---
+        if (this.pyrotechnics) {
+            this.pyrotechnics.update(0.016);
+        }
+
+        // --- 3. CAMBIO SINCRO DE COLORES DEL OCEANO ARMY BOMB ---
         if (this.lightOcean) {
             const colorsAttribute = this.lightOcean.geometry.attributes.color;
-            const cycle = Math.floor(time / 6) % 4; 
-            
+            const cycle = Math.floor(time / 6) % 4;
+
             for (let i = 0; i < colorsAttribute.count; i++) {
                 const wave = Math.sin(time * 3 + i * 0.02);
 
@@ -320,10 +340,13 @@ export class Stadium {
             this.video.load();
             this.video.remove();
         }
-        
+
+        if (this.pyrotechnics) {
+            this.pyrotechnics.destroy();
+        }
+
         this.scene.remove(this.stadiumGroup);
-        
-        // Limpiamos los dos contenedores de la UI al salir de la escena
+
         if (this.uiContainer) {
             this.uiContainer.remove();
         }
