@@ -27,7 +27,8 @@ export class BirthdayLobby {
             this.loadPixelTexture('/blue-ballon.png'),
             this.loadPixelTexture('/green-ballon.png'),
             this.loadPixelTexture('/purple-ballon.png'),
-            this.loadPixelTexture('/yellow-ballon.png')
+            this.loadPixelTexture('/yellow-ballon.png'),
+            this.loadPixelTexture('/ballon.png')
         ];
 
         this.createEnvironment(); 
@@ -51,6 +52,27 @@ export class BirthdayLobby {
         tex.minFilter = THREE.NearestFilter;
         tex.colorSpace = THREE.SRGBColorSpace;
         return tex;
+    }
+
+    shuffleArray(items) {
+        const shuffled = [...items];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+
+    getBalloonTextureGroup(groupSize) {
+        const uniquePalette = this.shuffleArray(this.balloonTextures);
+
+        if (groupSize <= uniquePalette.length) {
+            return uniquePalette.slice(0, groupSize);
+        }
+
+        const repeatedColor = uniquePalette[Math.floor(Math.random() * uniquePalette.length)];
+        const group = [...uniquePalette, repeatedColor];
+        return this.shuffleArray(group).slice(0, groupSize);
     }
 
     createEnvironment() {
@@ -100,10 +122,10 @@ export class BirthdayLobby {
         // GLOBOS habituales de las salas 0 y 1
         const balloonPositionsX = [-4.5, -2.2, 0, 2.2, 4.5]; 
         const balloonHeightsY = [4.2, 4.5, 5.0, 4.5, 4.2]; 
+        const balloonTextures = this.getBalloonTextureGroup(balloonPositionsX.length);
 
-        for(let b = 0; b < 5; b++) {
-            const randomBalloonTex = this.balloonTextures[Math.floor(Math.random() * this.balloonTextures.length)];
-            const bMat = new THREE.MeshBasicMaterial({ map: randomBalloonTex, transparent: true, alphaTest: 0.5 });
+        for(let b = 0; b < balloonPositionsX.length; b++) {
+            const bMat = new THREE.MeshBasicMaterial({ map: balloonTextures[b], transparent: true, alphaTest: 0.5 });
             const balloon = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 2.4), bMat);
             
             balloon.position.set(offsetX + balloonPositionsX[b], balloonHeightsY[b], -1.0);
@@ -147,13 +169,13 @@ export class BirthdayLobby {
         room.add(this.doorStadium);
         this.addTextLabel(room, "2", 4, 1.5);
 
-        // --- TUS POSICIONES DE GLOBOS PREFERIDAS PARA LA ROOM 2 ---
+        // --- TUS POSICIONES DE GLOBOS PREFERIDAS PARA LA ROOM 2: grupo simétrico de 6 ---
         const balloonPositionsX = [-9, -6, -2, 2, 6, 9]; 
         const balloonHeightsY = [4.5, 5.1, 5.6, 5.7, 4.2, 4.8]; 
+        const balloonTextures = this.getBalloonTextureGroup(balloonPositionsX.length);
 
         for(let b = 0; b < balloonPositionsX.length; b++) {
-            const randomBalloonTex = this.balloonTextures[Math.floor(Math.random() * this.balloonTextures.length)];
-            const bMat = new THREE.MeshBasicMaterial({ map: randomBalloonTex, transparent: true, alphaTest: 0.5 });
+            const bMat = new THREE.MeshBasicMaterial({ map: balloonTextures[b], transparent: true, alphaTest: 0.5 });
             const balloon = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 2.4), bMat);
             
             balloon.position.set(balloonPositionsX[b], balloonHeightsY[b], -1.0);
