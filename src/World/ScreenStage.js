@@ -7,7 +7,7 @@ export class ScreenStage {
 
     initVideoTexture() {
         this.video = document.createElement('video');
-        this.video.src = '/bts-concert.mp4';
+        this.video.src = '/assets/bts-concert.mp4';
         this.video.loop = true;
         this.video.muted = false;
         this.video.playsInline = true;

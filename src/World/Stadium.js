@@ -35,7 +35,7 @@ export class Stadium {
 
     createVideoTexture() {
         this.video = document.createElement('video');
-        this.video.src = '/bts-concert.mp4'; 
+        this.video.src = '/assets/bts-concert.mp4'; 
         this.video.load();
         this.video.loop = true;
         this.video.muted = true; // Empieza en silenciador por políticas del navegador

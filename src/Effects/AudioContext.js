@@ -15,7 +15,7 @@ export class AudioContextManager {
         const ambientSound = new THREE.Audio(this.listener);
         const audioLoader = new THREE.AudioLoader();
 
-        audioLoader.load('/ambient-stadium.mp3', (buffer) => {
+        audioLoader.load('/assets/ambient-stadium.mp3', (buffer) => {
             ambientSound.setBuffer(buffer);
             ambientSound.setLoop(true);
             ambientSound.setVolume(0.3); // Volumen tenue para que no tape la música

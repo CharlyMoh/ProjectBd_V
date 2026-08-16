@@ -37,11 +37,11 @@ export class BirthdayLobby {
         this.textureLoader = new THREE.TextureLoader();
 
         this.balloonTextures = [
-            this.loadPixelTexture('/blue-ballon.png'),
-            this.loadPixelTexture('/green-ballon.png'),
-            this.loadPixelTexture('/purple-ballon.png'),
-            this.loadPixelTexture('/yellow-ballon.png'),
-            this.loadPixelTexture('/ballon.png')
+            this.loadPixelTexture('/assets/blue-ballon.png'),
+            this.loadPixelTexture('/assets/green-ballon.png'),
+            this.loadPixelTexture('/assets/purple-ballon.png'),
+            this.loadPixelTexture('/assets/yellow-ballon.png'),
+            this.loadPixelTexture('/assets/ballon.png')
         ];
 
         this.createEnvironment(); 
@@ -115,7 +115,7 @@ export class BirthdayLobby {
     }
 
     buildTableScene(group, offsetX, leftKidPath, rightKidPath) {
-        const tableCakeTex = this.loadPixelTexture('/tableAndCake.png');
+        const tableCakeTex = this.loadPixelTexture('/assets/tableAndCake.png');
         const tableCakeMat = new THREE.MeshBasicMaterial({ map: tableCakeTex, transparent: true, alphaTest: 0.5 });
         
         const tableCake = new THREE.Mesh(new THREE.PlaneGeometry(6.0, 6.27), tableCakeMat);
@@ -156,15 +156,15 @@ export class BirthdayLobby {
 
     createRoom0() {
         const room = new THREE.Group();
-        this.buildTableScene(room, 0, '/The green-masked kid.png', '/The pink-masked kid.png');
+        this.buildTableScene(room, 0, '/assets/The green-masked kid.png', '/assets/The pink-masked kid.png');
         this.lobbyGroup.add(room);
         this.rooms.push(room);
     }
 
     createRoom1() {
         const room = new THREE.Group();
-        this.buildTableScene(room, -6.5, '/The purple-masked kid.png', '/The blue-masked kid.png');
-        this.buildTableScene(room, 6.5, '/The orange-masked kid.png', null);
+        this.buildTableScene(room, -6.5, '/assets/The purple-masked kid.png', '/assets/The blue-masked kid.png');
+        this.buildTableScene(room, 6.5, '/assets/The orange-masked kid.png', null);
         this.lobbyGroup.add(room);
         this.rooms.push(room);
     }
@@ -172,7 +172,7 @@ export class BirthdayLobby {
     createRoom2() {
         const room = new THREE.Group();
         this.addTextLabel(room, "ELIGE UNA PUERTA", 0, 3.5);
-        const doorTex = this.loadPixelTexture('/door.png');
+        const doorTex = this.loadPixelTexture('/assets/door.png');
         const doorGeo = new THREE.PlaneGeometry(3, 4.1);
 
         // Puerta 1
@@ -281,14 +281,14 @@ export class BirthdayLobby {
         const arrowSpacing = 1;
 
         // Flecha izquierda
-        const leftArrowTex = this.loadPixelTexture('/left.png');
+        const leftArrowTex = this.loadPixelTexture('/assets/left.png');
         const leftArrowMat = new THREE.MeshBasicMaterial({ map: leftArrowTex, transparent: true, alphaTest: 0.5 });
         this.leftArrow = new THREE.Mesh(new THREE.PlaneGeometry(arrowSize, arrowSize), leftArrowMat);
         this.leftArrow.position.set(-arrowSpacing, 2, 0);
         this.controlsGroup.add(this.leftArrow);
 
         // Flecha derecha
-        const rightArrowTex = this.loadPixelTexture('/right.png');
+        const rightArrowTex = this.loadPixelTexture('/assets/right.png');
         const rightArrowMat = new THREE.MeshBasicMaterial({ map: rightArrowTex, transparent: true, alphaTest: 0.5 });
         this.rightArrow = new THREE.Mesh(new THREE.PlaneGeometry(arrowSize, arrowSize), rightArrowMat);
         this.rightArrow.position.set(arrowSpacing, 2, 0);
@@ -302,7 +302,7 @@ export class BirthdayLobby {
     }
 
     createPlayer() {
-        const playerTex = this.loadPixelTexture('/mainCharacter-girl.png');
+        const playerTex = this.loadPixelTexture('/assets/mainCharacter-girl.png');
         const playerGeo = new THREE.PlaneGeometry(2.2, 4.5);
         const playerMat = new THREE.MeshBasicMaterial({ map: playerTex, transparent: true, alphaTest: 0.5 });
         
