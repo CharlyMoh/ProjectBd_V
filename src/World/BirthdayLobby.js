@@ -1,5 +1,18 @@
 import * as THREE from 'three';
 
+// Estilos de BirthdayLobby documentados en style.css
+const BIRTHDAY_COLORS = {
+    WALL_BG: '#000000',           // Fondo de pared
+    WALL_BORDER: '#888888',       // Bordes superior e inferior
+    TEXT_DEFAULT: '#ffffff',      // Texto default (blanco)
+    TEXT_INTERACTION: '#ffde59'   // Prompts interactivos (amarillo)
+};
+
+const BIRTHDAY_FONTS = {
+    LABEL: 'bold 30px "Courier New", Courier, monospace',    // Etiquetas
+    CONTROLS: 'bold 28px "Courier New", Courier, monospace'   // Controles
+};
+
 export class BirthdayLobby {
     constructor(scene, camera) {
         this.scene = scene;
@@ -39,7 +52,14 @@ export class BirthdayLobby {
         this.createPlayer();
         
         // Crear el indicador interactivo (Inicia oculto)
-        this.createInteractionPromptLabel(); 
+        this.createInteractionPromptLabel();
+        
+        // Crear controles de movimiento (arrows + mensaje)
+        this.createMovementControlsHUD();
+        
+        // Flag para saber si el usuario ya ha visto los controles
+        this.controlsVisible = true;
+        this.playerStartX = -10; // Posición inicial del jugador
         
         this.updateRoomVisibility(); 
         
@@ -77,13 +97,13 @@ export class BirthdayLobby {
 
     createEnvironment() {
         const wallGeo = new THREE.PlaneGeometry(150, 30);
-        const wallMat = new THREE.MeshBasicMaterial({ color: '#000000' });
+        const wallMat = new THREE.MeshBasicMaterial({ color: BIRTHDAY_COLORS.WALL_BG });
         const wall = new THREE.Mesh(wallGeo, wallMat);
         wall.position.set(0, 2, -5);
         this.lobbyGroup.add(wall);
 
         const borderGeo = new THREE.PlaneGeometry(150, 0.4);
-        const borderMat = new THREE.MeshBasicMaterial({ color: '#888888' });
+        const borderMat = new THREE.MeshBasicMaterial({ color: BIRTHDAY_COLORS.WALL_BORDER });
         
         const borderTop = new THREE.Mesh(borderGeo, borderMat);
         borderTop.position.set(0, 7.5, -4);
@@ -193,8 +213,8 @@ export class BirthdayLobby {
         canvas.height = 64;
 
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 30px "Courier New", Courier, monospace';
+        ctx.fillStyle = BIRTHDAY_COLORS.TEXT_DEFAULT;
+        ctx.font = BIRTHDAY_FONTS.LABEL;
         ctx.textAlign = 'center';
         // Centrado exacto dividiendo el ancho del canvas (520 / 2 = 260)
         ctx.fillText(text, 260, 40);
@@ -215,8 +235,8 @@ export class BirthdayLobby {
         canvas.height = 64;
 
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffde59'; // Tono amarillo interactivo nítido
-        ctx.font = 'bold 30px "Courier New", Courier, monospace';
+        ctx.fillStyle = BIRTHDAY_COLORS.TEXT_INTERACTION; // Amarillo interactivo
+        ctx.font = BIRTHDAY_FONTS.LABEL;
         ctx.textAlign = 'center';
         ctx.fillText("PRESIONA ↑ O W", 260, 40);
 
@@ -232,6 +252,55 @@ export class BirthdayLobby {
         this.lobbyGroup.add(this.interactionPromptLabel);
     }
 
+    createMovementControlsHUD() {
+        // Grupo contenedor para las flechas y mensaje
+        this.controlsGroup = new THREE.Group();
+        this.controlsGroup.position.set(-10, 0, 0); // Posicionar el grupo en X = -10
+        this.lobbyGroup.add(this.controlsGroup);
+
+        // Crear mensaje "USE LEFT/RIGHT ARROWS TO MOVE"
+        const msgCanvas = document.createElement('canvas');
+        msgCanvas.width = 800;
+        msgCanvas.height = 80;
+        const ctx = msgCanvas.getContext('2d');
+        ctx.fillStyle = BIRTHDAY_COLORS.TEXT_DEFAULT;
+        ctx.font = BIRTHDAY_FONTS.CONTROLS;
+        ctx.textAlign = 'center';
+        ctx.fillText("USE LEFT/RIGHT ARROWS TO MOVE", 400, 50);
+
+        const msgTex = new THREE.CanvasTexture(msgCanvas);
+        this.controlsMessage = new THREE.Mesh(
+            new THREE.PlaneGeometry(10, 1.2),
+            new THREE.MeshBasicMaterial({ map: msgTex, transparent: true })
+        );
+        this.controlsMessage.position.set(0, 3.5, 0); // Relativo al grupo
+        this.controlsGroup.add(this.controlsMessage);
+
+        // Flechas (posición relativa al grupo)
+        const arrowSize = 1.3;
+        const arrowSpacing = 1;
+
+        // Flecha izquierda
+        const leftArrowTex = this.loadPixelTexture('/left.png');
+        const leftArrowMat = new THREE.MeshBasicMaterial({ map: leftArrowTex, transparent: true, alphaTest: 0.5 });
+        this.leftArrow = new THREE.Mesh(new THREE.PlaneGeometry(arrowSize, arrowSize), leftArrowMat);
+        this.leftArrow.position.set(-arrowSpacing, 2, 0);
+        this.controlsGroup.add(this.leftArrow);
+
+        // Flecha derecha
+        const rightArrowTex = this.loadPixelTexture('/right.png');
+        const rightArrowMat = new THREE.MeshBasicMaterial({ map: rightArrowTex, transparent: true, alphaTest: 0.5 });
+        this.rightArrow = new THREE.Mesh(new THREE.PlaneGeometry(arrowSize, arrowSize), rightArrowMat);
+        this.rightArrow.position.set(arrowSpacing, 2, 0);
+        this.controlsGroup.add(this.rightArrow);
+
+        // Estados de animación
+        this.leftArrowScale = 1;
+        this.rightArrowScale = 1;
+        this.leftArrowAnimating = false;
+        this.rightArrowAnimating = false;
+    }
+
     createPlayer() {
         const playerTex = this.loadPixelTexture('/mainCharacter-girl.png');
         const playerGeo = new THREE.PlaneGeometry(2.2, 4.5);
@@ -239,7 +308,7 @@ export class BirthdayLobby {
         
         this.player = new THREE.Mesh(playerGeo, playerMat);
         // Posiciones exactas requeridas: Eje Z puesto en 1 para quedar delante de todo
-        this.player.position.set(-13, -1.2, 1); 
+        this.player.position.set(-10, -1, 1); 
         this.lobbyGroup.add(this.player);
     }
 
@@ -296,6 +365,57 @@ export class BirthdayLobby {
                 this.player.position.x = -screenEdge; 
             }
         }
+
+        // Lógica de controles HUD - desaparecer cuando el jugador avance lo suficiente en la sala 0
+        if (this.controlsVisible && this.currentRoom === 0) {
+            const distanceTraveled = Math.abs(this.player.position.x - this.playerStartX);
+            const hideDistance = 8; // A mitad de la sala aproximadamente
+            
+            if (distanceTraveled > hideDistance) {
+                this.controlsVisible = false;
+                this.controlsGroup.visible = false;
+            }
+        }
+
+        // Animaciones de flechas cuando se presionan las teclas
+        const animationSpeed = 0.15;
+        const maxScale = 1.15;
+
+        // Animación flecha izquierda
+        if (this.keys.left && !this.leftArrowAnimating) {
+            this.leftArrowAnimating = true;
+        }
+        
+        if (this.leftArrowAnimating) {
+            this.leftArrowScale += animationSpeed;
+            if (this.leftArrowScale >= maxScale) {
+                this.leftArrowScale = maxScale;
+                this.leftArrowAnimating = false;
+            }
+        } else if (this.leftArrowScale > 1) {
+            this.leftArrowScale -= animationSpeed * 0.5;
+            if (this.leftArrowScale < 1) this.leftArrowScale = 1;
+        }
+
+        // Animación flecha derecha
+        if (this.keys.right && !this.rightArrowAnimating) {
+            this.rightArrowAnimating = true;
+        }
+        
+        if (this.rightArrowAnimating) {
+            this.rightArrowScale += animationSpeed;
+            if (this.rightArrowScale >= maxScale) {
+                this.rightArrowScale = maxScale;
+                this.rightArrowAnimating = false;
+            }
+        } else if (this.rightArrowScale > 1) {
+            this.rightArrowScale -= animationSpeed * 0.5;
+            if (this.rightArrowScale < 1) this.rightArrowScale = 1;
+        }
+
+        // Aplicar escala a las flechas
+        this.leftArrow.scale.set(this.leftArrowScale, this.leftArrowScale, 1);
+        this.rightArrow.scale.set(this.rightArrowScale, this.rightArrowScale, 1);
 
         // Lógica de proximidad de puertas e indicadores interactivos
         this.isPromptVisible = false; 

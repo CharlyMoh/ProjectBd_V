@@ -66,3 +66,65 @@ button:hover {
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
 }
+
+/* ================================================
+   BIRTHDAY LOBBY STYLES (BirthdayLobby.js)
+   ================================================
+   
+   Nota: Los estilos de BirthdayLobby se aplican mediante Three.js 
+   y Canvas. Esta sección documenta todos los colores, fuentes y 
+   estilos visuales utilizados en ese módulo.
+*/
+
+/* --- Paleta de Colores ---
+   Documentación de todos los colores utilizados en BirthdayLobby */
+:root {
+    /* Ambiente - createEnvironment() */
+    --birthday-wall-bg: #000000;      /* Fondo de pared principal */
+    --birthday-wall-border: #888888;  /* Bordes superior e inferior */
+    
+    /* Texto - Etiquetas y Mensajes */
+    --birthday-text-default: #ffffff;     /* Color default para textos (blanco) */
+    --birthday-text-interaction: #ffde59; /* Color para prompts de interacción (amarillo) */
+}
+
+/* --- Fuentes Utilizadas ---
+   Todas las fuentes en BirthdayLobby usan Courier New (monoespaciada pixel-like) */
+:root {
+    --birthday-font-label: bold 30px "Courier New", Courier, monospace;
+    --birthday-font-controls: bold 28px "Courier New", Courier, monospace;
+}
+
+/* --- Aplicación de Estilos por Elemento ---
+
+   1. PAREDES Y BORDES (createEnvironment)
+      - Wall (pared de fondo): color #000000, dimensiones 150x30
+      - Border Top (borde superior): color #888888, dimensiones 150x0.4
+      - Border Bottom (borde inferior): color #888888, dimensiones 150x0.4
+   
+   2. ETIQUETAS DE TEXTO (addTextLabel)
+      - Color: #ffffff (blanco)
+      - Fuente: bold 30px "Courier New", Courier, monospace
+      - Uso: Números de salas (1, 2), títulos ("ELIGE UNA PUERTA")
+   
+   3. INDICADOR DE INTERACCIÓN (createInteractionPromptLabel)
+      - Color: #ffde59 (amarillo nítido)
+      - Fuente: bold 30px "Courier New", Courier, monospace
+      - Uso: Prompt "PRESIONA ↑ O W" cuando el jugador está cerca de puertas
+      - Z-index equivalente: 1.1 (flotando frente al personaje)
+   
+   4. CONTROLES DE MOVIMIENTO HUD (createMovementControlsHUD)
+      - Mensaje principal "USE LEFT/RIGHT ARROWS TO MOVE"
+        Color: #ffffff (blanco)
+        Fuente: bold 28px "Courier New", Courier, monospace
+        Tamaño: 10x1.2 unidades 3D
+      
+      - Flechas (left.png y right.png)
+        Tamaño: 1.3x1.3 unidades
+        Posición: ±2 unidades horizontales desde el centro
+        Altura: Y = 2 (debajo del mensaje)
+        Animación: Escala de 1.0 a 1.15 al presionar teclas
+      
+      - Visibilidad: Solo en sala 0, desaparece después de 8 unidades recorridas
+
+*/
