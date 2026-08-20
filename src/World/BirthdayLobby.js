@@ -157,6 +157,32 @@ export class BirthdayLobby {
     createRoom0() {
         const room = new THREE.Group();
         this.buildTableScene(room, 0, '/assets/The green-masked kid.png', '/assets/The pink-masked kid.png');
+
+        const birthdayNumberGeometry = new THREE.PlaneGeometry(2.4, 2.65);
+        const numberTwo = new THREE.Mesh(
+            birthdayNumberGeometry,
+            new THREE.MeshBasicMaterial({
+                map: this.loadPixelTexture('/assets/2_ballon.png'),
+                transparent: true,
+                alphaTest: 0.5
+            })
+        );
+        numberTwo.position.set(7.8, 2.6, -1.0);
+        room.add(numberTwo);
+        this.balloons.push({ mesh: numberTwo, offset: Math.random() * Math.PI * 2, smooth: true });
+
+        const numberZero = new THREE.Mesh(
+            birthdayNumberGeometry,
+            new THREE.MeshBasicMaterial({
+                map: this.loadPixelTexture('/assets/0_ballon.png'),
+                transparent: true,
+                alphaTest: 0.5
+            })
+        );
+        numberZero.position.set(10.4, 2.6, -1.0);
+        room.add(numberZero);
+        this.balloons.push({ mesh: numberZero, offset: Math.random() * Math.PI * 2, smooth: true });
+
         this.lobbyGroup.add(room);
         this.rooms.push(room);
     }
@@ -173,25 +199,25 @@ export class BirthdayLobby {
         const room = new THREE.Group();
         this.addTextLabel(room, "ELIGE UNA PUERTA", 0, 3.5);
         const doorTex = this.loadPixelTexture('/assets/door.png');
-        const doorGeo = new THREE.PlaneGeometry(3, 4.1);
+        const doorGeo = new THREE.PlaneGeometry(3, 4.5);
 
         // Puerta 1
         const doorLeftMat = new THREE.MeshBasicMaterial({ map: doorTex, transparent: true, alphaTest: 0.5 });
         this.doorLetter = new THREE.Mesh(doorGeo, doorLeftMat);
-        this.doorLetter.position.set(-4, -1.0, -1.0);
+        this.doorLetter.position.set(-4, -0.80, -1.0);
         room.add(this.doorLetter);
         this.addTextLabel(room, "1", -4, 1.5);
 
         // Puerta 2
         const doorRightMat = new THREE.MeshBasicMaterial({ map: doorTex, transparent: true, alphaTest: 0.5 });
         this.doorStadium = new THREE.Mesh(doorGeo, doorRightMat);
-        this.doorStadium.position.set(4, -1.0, -1.0);
+        this.doorStadium.position.set(4, -0.80, -1.0);
         room.add(this.doorStadium);
         this.addTextLabel(room, "2", 4, 1.5);
 
         // --- TUS POSICIONES DE GLOBOS PREFERIDAS PARA LA ROOM 2: grupo simétrico de 6 ---
         const balloonPositionsX = [-9, -6, -2, 2, 6, 9]; 
-        const balloonHeightsY = [4.5, 5.1, 5.6, 5.7, 4.2, 4.8]; 
+        const balloonHeightsY = [4.5, 5.1, 5.9, 6.0, 4.2, 4.8]; 
         const balloonTextures = this.getBalloonTextureGroup(balloonPositionsX.length);
 
         for(let b = 0; b < balloonPositionsX.length; b++) {
@@ -337,7 +363,12 @@ export class BirthdayLobby {
         if (this.isCardOpen) return; 
 
         this.balloons.forEach((b) => {
-            b.mesh.position.y += Math.sin(time * 2 + b.offset) * 0.005;
+            if (b.smooth) {
+                if (b.baseY === undefined) b.baseY = b.mesh.position.y;
+                b.mesh.position.y = b.baseY + Math.sin(time * 2 + b.offset) * 0.04;
+            } else {
+                b.mesh.position.y += Math.sin(time * 2 + b.offset) * 0.005;
+            }
         });
 
         const speed = 0.20;
@@ -428,7 +459,7 @@ export class BirthdayLobby {
 
             if (distLetter < interactionRange) {
                 this.interactionPromptLabel.position.x = this.doorLetter.position.x;
-                this.interactionPromptLabel.position.y = 2.0; 
+                this.interactionPromptLabel.position.y = 2.3; 
                 this.isPromptVisible = true;
                 
                 if (this.keys.up && !this.isTransitioning) {
@@ -437,7 +468,7 @@ export class BirthdayLobby {
                 }
             } else if (distStadium < interactionRange) {
                 this.interactionPromptLabel.position.x = this.doorStadium.position.x;
-                this.interactionPromptLabel.position.y = 2.0; 
+                this.interactionPromptLabel.position.y = 2.3; 
                 this.isPromptVisible = true;
                 
                 if (this.keys.up && !this.isTransitioning) {
