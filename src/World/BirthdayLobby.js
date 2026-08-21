@@ -185,8 +185,65 @@ export class BirthdayLobby {
         room.add(numberZero);
         this.balloons.push({ mesh: numberZero, offset: Math.random() * Math.PI * 2, smooth: true });
 
+        this.giftBox = new THREE.Mesh(
+            new THREE.PlaneGeometry(2.5, 2.5),
+            new THREE.MeshBasicMaterial({
+                map: this.loadPixelTexture('/assets/closeBox.png'),
+                transparent: true,
+                alphaTest: 0.5
+            })
+        );
+        this.giftBox.position.set(9.1, -1.98, 1);
+        room.add(this.giftBox);
+
+        this.giftStrings = [
+            { balloon: numberTwo, line: this.createGiftString(room, numberTwo, this.giftBox) },
+            { balloon: numberZero, line: this.createGiftString(room, numberZero, this.giftBox) }
+        ];
+
         this.lobbyGroup.add(room);
         this.rooms.push(room);
+    }
+
+    createGiftString(group, balloon, giftBox) {
+        const stringThickness = 0.08;
+        const stringGeometry = new THREE.PlaneGeometry(1, stringThickness);
+        const stringMaterial = new THREE.MeshBasicMaterial({ color : BIRTHDAY_COLORS.TEXT_DEFAULT });
+        const string = new THREE.Group();
+        string.add(
+            new THREE.Mesh(stringGeometry, stringMaterial),
+            new THREE.Mesh(stringGeometry, stringMaterial)
+        );
+        group.add(string);
+        this.updateGiftString(string, balloon, giftBox);
+        return string;
+    }
+
+    updateGiftString(string, balloon, giftBox) {
+        const giftTop = new THREE.Vector3(
+            giftBox.position.x,
+            giftBox.position.y + 1.25,
+            0.98
+        );
+        const balloonBottom = new THREE.Vector3(
+            balloon.position.x,
+            balloon.position.y - 1.32,
+            0.98
+        );
+        const midpoint = new THREE.Vector3().lerpVectors(giftTop, balloonBottom, 0.5);
+        midpoint.y -= 0.08;
+        this.updateStringSegment(string.children[0], giftTop, midpoint);
+        this.updateStringSegment(string.children[1], midpoint, balloonBottom);
+    }
+
+    updateStringSegment(segment, start, end) {
+        const direction = new THREE.Vector3().subVectors(end, start);
+        const length = direction.length();
+        const midpoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+
+        segment.position.copy(midpoint);
+        segment.scale.set(length, 1, 1);
+        segment.rotation.z = Math.atan2(direction.y, direction.x);
     }
 
     createRoom1() {
@@ -371,6 +428,10 @@ export class BirthdayLobby {
             } else {
                 b.mesh.position.y += Math.sin(time * 2 + b.offset) * 0.005;
             }
+        });
+
+        this.giftStrings.forEach((stringData) => {
+            this.updateGiftString(stringData.line, stringData.balloon, this.giftBox);
         });
 
         const isMoving = this.keys.left || this.keys.right;
