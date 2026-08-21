@@ -60,6 +60,8 @@ export class BirthdayLobby {
         // Flag para saber si el usuario ya ha visto los controles
         this.controlsVisible = true;
         this.playerStartX = -10; // Posición inicial del jugador
+        this.nextMovementTime = 0;
+        this.movementStepInterval = 1 / 24;
         
         this.updateRoomVisibility(); 
         
@@ -371,9 +373,15 @@ export class BirthdayLobby {
             }
         });
 
-        const speed = 0.20;
-        if (this.keys.left) this.player.position.x -= speed;
-        if (this.keys.right) this.player.position.x += speed;
+        const isMoving = this.keys.left || this.keys.right;
+        if (isMoving && time >= this.nextMovementTime) {
+            const movementStep = 0.5;
+            if (this.keys.left) this.player.position.x -= movementStep;
+            if (this.keys.right) this.player.position.x += movementStep;
+            this.nextMovementTime = time + this.movementStepInterval;
+        } else if (!isMoving) {
+            this.nextMovementTime = time;
+        }
 
         const screenEdge = 13.5; 
 
