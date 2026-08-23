@@ -53,6 +53,7 @@ lobby.onEnterLetter = () => {
     letterScene.onReturnToLobby = () => {
         letterScene.destroy();
         letterScene = null;
+        lobby.openLastGiftBox();
         sceneManager.camera = orthoCamera;
         lobby.lobbyGroup.visible = true;
         lobby.isTransitioning = false;
@@ -74,6 +75,7 @@ lobby.onEnterStadium = () => {
     stadiumScene.onReturnToLobby = () => {
         stadiumScene.destroy();
         stadiumScene = null;
+        lobby.openLastGiftBox();
         sceneManager.camera = orthoCamera;
         lobby.lobbyGroup.visible = true;
         lobby.isTransitioning = false;

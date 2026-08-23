@@ -246,6 +246,15 @@ export class BirthdayLobby {
         segment.rotation.z = Math.atan2(direction.y, direction.x);
     }
 
+    openLastGiftBox() {
+        const openGiftWidth = 3.5;
+        const openGiftHeight = openGiftWidth * (287 / 464);
+        this.lastGiftBox.geometry.dispose();
+        this.lastGiftBox.geometry = new THREE.PlaneGeometry(openGiftWidth, openGiftHeight);
+        this.lastGiftBox.material.map = this.loadPixelTexture('/assets/openBox.png');
+        this.lastGiftBox.material.needsUpdate = true;
+    }
+
     createRoom1() {
         const room = new THREE.Group();
         this.buildTableScene(room, -6.5, '/assets/The purple-masked kid.png', '/assets/The blue-masked kid.png');
@@ -287,6 +296,20 @@ export class BirthdayLobby {
             room.add(balloon);
             this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2, smooth: true, movementRange: 0.12 });
         }
+
+        // Regalo de la última habitación, independiente del regalo de la habitación principal
+        const lastGiftWidth = 2.5;
+        const lastGiftHeight = lastGiftWidth * (258 / 231);
+        this.lastGiftBox = new THREE.Mesh(
+            new THREE.PlaneGeometry(lastGiftWidth, lastGiftHeight),
+            new THREE.MeshBasicMaterial({
+                map: this.loadPixelTexture('/assets/closeBox.png'),
+                transparent: true,
+                alphaTest: 0.5
+            })
+        );
+        this.lastGiftBox.position.set(9.1, -1.98, 1);
+        room.add(this.lastGiftBox);
 
         this.lobbyGroup.add(room);
         this.rooms.push(room);
