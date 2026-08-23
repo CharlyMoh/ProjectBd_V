@@ -152,7 +152,7 @@ export class BirthdayLobby {
             
             balloon.position.set(offsetX + balloonPositionsX[b], balloonHeightsY[b], -1.0);
             group.add(balloon);
-            this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2 });
+            this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2, smooth: true, movementRange: 0.12 });
         }
     }
 
@@ -171,7 +171,7 @@ export class BirthdayLobby {
         );
         numberTwo.position.set(7.8, 2.6, -1.0);
         room.add(numberTwo);
-        this.balloons.push({ mesh: numberTwo, offset: Math.random() * Math.PI * 2, smooth: true });
+        this.balloons.push({ mesh: numberTwo, offset: Math.random() * Math.PI * 2, smooth: true, movementRange: 0.12 });
 
         const numberZero = new THREE.Mesh(
             birthdayNumberGeometry,
@@ -183,7 +183,7 @@ export class BirthdayLobby {
         );
         numberZero.position.set(10.4, 2.6, -1.0);
         room.add(numberZero);
-        this.balloons.push({ mesh: numberZero, offset: Math.random() * Math.PI * 2, smooth: true });
+        this.balloons.push({ mesh: numberZero, offset: Math.random() * Math.PI * 2, smooth: true, movementRange: 0.12 });
 
         this.giftBox = new THREE.Mesh(
             new THREE.PlaneGeometry(2.5, 2.5),
@@ -276,7 +276,7 @@ export class BirthdayLobby {
 
         // --- TUS POSICIONES DE GLOBOS PREFERIDAS PARA LA ROOM 2: grupo simétrico de 6 ---
         const balloonPositionsX = [-9, -6, -2, 2, 6, 9]; 
-        const balloonHeightsY = [4.5, 5.1, 5.9, 6.0, 4.2, 4.8]; 
+        const balloonHeightsY = [5.3, 5.5, 5.7, 5.7, 5.3, 5.5]; 
         const balloonTextures = this.getBalloonTextureGroup(balloonPositionsX.length);
 
         for(let b = 0; b < balloonPositionsX.length; b++) {
@@ -285,7 +285,7 @@ export class BirthdayLobby {
             
             balloon.position.set(balloonPositionsX[b], balloonHeightsY[b], -1.0);
             room.add(balloon);
-            this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2 });
+            this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2, smooth: true, movementRange: 0.12 });
         }
 
         this.lobbyGroup.add(room);
@@ -424,7 +424,8 @@ export class BirthdayLobby {
         this.balloons.forEach((b) => {
             if (b.smooth) {
                 if (b.baseY === undefined) b.baseY = b.mesh.position.y;
-                b.mesh.position.y = b.baseY + Math.sin(time * 2 + b.offset) * 0.04;
+                const movementRange = b.movementRange ?? 0.04;
+                b.mesh.position.y = b.baseY + Math.sin(time * 2 + b.offset) * movementRange;
             } else {
                 b.mesh.position.y += Math.sin(time * 2 + b.offset) * 0.005;
             }
