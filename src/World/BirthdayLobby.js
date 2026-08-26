@@ -152,7 +152,7 @@ export class BirthdayLobby {
             
             balloon.position.set(offsetX + balloonPositionsX[b], balloonHeightsY[b], -1.0);
             group.add(balloon);
-            this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2 });
+            this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2, smooth: true, movementRange: 0.12 });
         }
     }
 
@@ -171,7 +171,7 @@ export class BirthdayLobby {
         );
         numberTwo.position.set(7.8, 2.6, -1.0);
         room.add(numberTwo);
-        this.balloons.push({ mesh: numberTwo, offset: Math.random() * Math.PI * 2, smooth: true });
+        this.balloons.push({ mesh: numberTwo, offset: Math.random() * Math.PI * 2, smooth: true, movementRange: 0.12 });
 
         const numberZero = new THREE.Mesh(
             birthdayNumberGeometry,
@@ -183,7 +183,7 @@ export class BirthdayLobby {
         );
         numberZero.position.set(10.4, 2.6, -1.0);
         room.add(numberZero);
-        this.balloons.push({ mesh: numberZero, offset: Math.random() * Math.PI * 2, smooth: true });
+        this.balloons.push({ mesh: numberZero, offset: Math.random() * Math.PI * 2, smooth: true, movementRange: 0.12 });
 
         this.giftBox = new THREE.Mesh(
             new THREE.PlaneGeometry(2.5, 2.5),
@@ -246,6 +246,15 @@ export class BirthdayLobby {
         segment.rotation.z = Math.atan2(direction.y, direction.x);
     }
 
+    openLastGiftBox() {
+        const openGiftWidth = 3.5;
+        const openGiftHeight = openGiftWidth * (287 / 464);
+        this.lastGiftBox.geometry.dispose();
+        this.lastGiftBox.geometry = new THREE.PlaneGeometry(openGiftWidth, openGiftHeight);
+        this.lastGiftBox.material.map = this.loadPixelTexture('/assets/openBox.png');
+        this.lastGiftBox.material.needsUpdate = true;
+    }
+
     createRoom1() {
         const room = new THREE.Group();
         this.buildTableScene(room, -6.5, '/assets/The purple-masked kid.png', '/assets/The blue-masked kid.png');
@@ -276,7 +285,7 @@ export class BirthdayLobby {
 
         // --- TUS POSICIONES DE GLOBOS PREFERIDAS PARA LA ROOM 2: grupo simétrico de 6 ---
         const balloonPositionsX = [-9, -6, -2, 2, 6, 9]; 
-        const balloonHeightsY = [4.5, 5.1, 5.9, 6.0, 4.2, 4.8]; 
+        const balloonHeightsY = [5.3, 5.5, 5.7, 5.7, 5.3, 5.5]; 
         const balloonTextures = this.getBalloonTextureGroup(balloonPositionsX.length);
 
         for(let b = 0; b < balloonPositionsX.length; b++) {
@@ -285,8 +294,22 @@ export class BirthdayLobby {
             
             balloon.position.set(balloonPositionsX[b], balloonHeightsY[b], -1.0);
             room.add(balloon);
-            this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2 });
+            this.balloons.push({ mesh: balloon, offset: Math.random() * Math.PI * 2, smooth: true, movementRange: 0.12 });
         }
+
+        // Regalo de la última habitación, independiente del regalo de la habitación principal
+        const lastGiftWidth = 2.5;
+        const lastGiftHeight = lastGiftWidth * (258 / 231);
+        this.lastGiftBox = new THREE.Mesh(
+            new THREE.PlaneGeometry(lastGiftWidth, lastGiftHeight),
+            new THREE.MeshBasicMaterial({
+                map: this.loadPixelTexture('/assets/closeBox.png'),
+                transparent: true,
+                alphaTest: 0.5
+            })
+        );
+        this.lastGiftBox.position.set(9.1, -1.98, 1);
+        room.add(this.lastGiftBox);
 
         this.lobbyGroup.add(room);
         this.rooms.push(room);
@@ -424,7 +447,8 @@ export class BirthdayLobby {
         this.balloons.forEach((b) => {
             if (b.smooth) {
                 if (b.baseY === undefined) b.baseY = b.mesh.position.y;
-                b.mesh.position.y = b.baseY + Math.sin(time * 2 + b.offset) * 0.04;
+                const movementRange = b.movementRange ?? 0.04;
+                b.mesh.position.y = b.baseY + Math.sin(time * 2 + b.offset) * movementRange;
             } else {
                 b.mesh.position.y += Math.sin(time * 2 + b.offset) * 0.005;
             }
