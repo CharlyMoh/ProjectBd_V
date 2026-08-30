@@ -14,6 +14,7 @@ export class LetterScene {
 
         this.targetPositions = [];
         this.isFormingText = false;
+        this.textFormationInitialized = false;
 
         this.mouseX = 0;
         this.mouseY = 0;
@@ -706,22 +707,21 @@ export class LetterScene {
         }
 
         if (this.isFormingText && this.particles) {
-            // posicion de destino del nombre 
+            if (!this.textFormationInitialized) {
+                this.bakeParticleRotationIntoPositions();
+                this.textFormationInitialized = true;
+            }
+
             const target = {
                 x: 0,
                 y: 9,
                 z: 0
             };
 
-            // 1. Interpolamos la posición y rotación del contenedor a 0 (frente a la cámara)
-            this.particles.rotation.x += (0 - this.particles.rotation.x) * 0.02;
-            this.particles.rotation.z += (0 - this.particles.rotation.z) * 0.02;
-
             this.particles.position.x += (target.x - this.particles.position.x) * 0.02;
             this.particles.position.y += (target.y - this.particles.position.y) * 0.02;
             this.particles.position.z += (target.z - this.particles.position.z) * 0.02;
 
-            // 2. Interpolamos las posiciones individuales de las partículas para formar las letras
             const positions = this.particles.geometry.attributes.position.array;
             for (let i = 0; i < this.targetPositions.length; i++) {
                 const ix = i * 3, iy = i * 3 + 1, iz = i * 3 + 2;
@@ -731,9 +731,25 @@ export class LetterScene {
             }
             this.particles.geometry.attributes.position.needsUpdate = true;
         } else if (this.particles) {
-            // Antes de hacer clic, las estrellas del texto giran sincronizadas con el resto de la galaxia
             this.particles.rotation.z -= 0.0015;
         }
+    }
+
+    bakeParticleRotationIntoPositions() {
+        const positions = this.particles.geometry.attributes.position.array;
+        const quaternion = new THREE.Quaternion().setFromEuler(this.particles.rotation);
+        const vertex = new THREE.Vector3();
+
+        for (let i = 0; i < positions.length; i += 3) {
+            vertex.set(positions[i], positions[i + 1], positions[i + 2]);
+            vertex.applyQuaternion(quaternion);
+            positions[i] = vertex.x;
+            positions[i + 1] = vertex.y;
+            positions[i + 2] = vertex.z;
+        }
+
+        this.particles.geometry.attributes.position.needsUpdate = true;
+        this.particles.rotation.set(0, 0, 0);
     }
 
     destroy() {
