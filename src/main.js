@@ -3,6 +3,7 @@ import { SceneManager } from './Core/SceneManager.js';
 import { BirthdayLobby } from './World/BirthdayLobby.js';
 import { LetterScene } from './World/LetterScene.js'; 
 import { Stadium } from './World/Stadium.js';
+import { initGalaxyExperience } from './World/galaxyExperience.js';
 
 const canvas = document.querySelector('canvas.webgl');
 const uiContainer = document.getElementById('ui-container');
@@ -39,6 +40,7 @@ sceneManager.scene.add(ambientLight);
 let lobby = new BirthdayLobby(sceneManager.scene, sceneManager.camera);
 let letterScene = null;
 let stadiumScene = null;
+let galaxyExperience = null;
 
 // --- EVENTO 1: Transición a la Carta (Puerta Izquierda) ---
 lobby.onEnterLetter = () => {
@@ -62,14 +64,12 @@ lobby.onEnterLetter = () => {
 };
 
 // --- EVENTO 2: Transición al Concierto de BTS (Puerta Derecha) ---
-// --- TRANSICIÓN AL CONCIERTO DE BTS (PUERTA DERECHA) ---
 lobby.onEnterStadium = () => {
     sceneManager.scene.fog = null;
     lobby.lobbyGroup.visible = false;
     
     sceneManager.camera = perspCamera;
     
-    // Le pasamos (scene, camera) a la instancia de Stadium
     stadiumScene = new Stadium(sceneManager.scene, sceneManager.camera);
     
     stadiumScene.onReturnToLobby = () => {
@@ -81,6 +81,26 @@ lobby.onEnterStadium = () => {
         lobby.isTransitioning = false;
         lobby.player.position.x -= 2; 
     };
+};
+
+// --- EVENTO 3: Transición a la experiencia galáctica (Puerta 3) ---
+lobby.onEnterNave = () => {
+    lobby.lobbyGroup.visible = false;
+    canvas.style.display = 'none';
+
+    galaxyExperience = initGalaxyExperience({
+        mountNode: document.body,
+        onReturnToLobby: () => {
+            galaxyExperience.destroy();
+            galaxyExperience = null;
+            lobby.openLastGiftBox();
+            canvas.style.display = '';
+            sceneManager.camera = orthoCamera;
+            lobby.lobbyGroup.visible = true;
+            lobby.isTransitioning = false;
+            lobby.player.position.x += 2;
+        },
+    });
 };
 
 // Bucle principal de renderizado
@@ -101,7 +121,9 @@ const tick = () => {
         stadiumScene.update(elapsedTime);
     }
 
-    sceneManager.update();
+    if (!galaxyExperience) {
+        sceneManager.update();
+    }
     window.requestAnimationFrame(tick);
 };
 

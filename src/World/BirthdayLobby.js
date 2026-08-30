@@ -33,6 +33,7 @@ export class BirthdayLobby {
         this.isTransitioning = false;
         this.onEnterLetter = null; // Callback vinculado con main.js
         this.onEnterStadium = null; // Callback vinculado con main.js
+        this.onEnterNave = null; // Callback para la experiencia galáctica (puerta 3)
 
         this.textureLoader = new THREE.TextureLoader();
 
@@ -282,6 +283,13 @@ export class BirthdayLobby {
         this.doorStadium.position.set(4, -0.80, -1.0);
         room.add(this.doorStadium);
         this.addTextLabel(room, "2", 4, 1.5);
+
+        // Puerta 3 (experiencia galáctica)
+        const doorNaveMat = new THREE.MeshBasicMaterial({ map: doorTex, transparent: true, alphaTest: 0.5, color: '#8fe3ff' });
+        this.doorNave = new THREE.Mesh(doorGeo, doorNaveMat);
+        this.doorNave.position.set(0, -0.80, -1.0);
+        room.add(this.doorNave);
+        this.addTextLabel(room, "3", 0, 1.5);
 
         // --- TUS POSICIONES DE GLOBOS PREFERIDAS PARA LA ROOM 2: grupo simétrico de 6 ---
         const balloonPositionsX = [-9, -6, -2, 2, 6, 9]; 
@@ -547,6 +555,7 @@ export class BirthdayLobby {
         if (this.currentRoom === 2) {
             const distLetter = Math.abs(this.player.position.x - this.doorLetter.position.x);
             const distStadium = Math.abs(this.player.position.x - this.doorStadium.position.x);
+            const distNave = Math.abs(this.player.position.x - this.doorNave.position.x);
 
             const interactionRange = 1.8;
 
@@ -567,6 +576,15 @@ export class BirthdayLobby {
                 if (this.keys.up && !this.isTransitioning) {
                     this.isTransitioning = true; 
                     if(this.onEnterStadium) this.onEnterStadium(); 
+                }
+            } else if (distNave < interactionRange) {
+                this.interactionPromptLabel.position.x = this.doorNave.position.x;
+                this.interactionPromptLabel.position.y = 2.3; 
+                this.isPromptVisible = true;
+
+                if (this.keys.up && !this.isTransitioning) {
+                    this.isTransitioning = true;
+                    if(this.onEnterNave) this.onEnterNave();
                 }
             }
         }
