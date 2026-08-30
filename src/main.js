@@ -42,16 +42,13 @@ let letterScene = null;
 let stadiumScene = null;
 let galaxyExperience = null;
 
-// --- EVENTO 1: Transición a la Carta (Puerta Izquierda) ---
-lobby.onEnterLetter = () => {
-    lobby.lobbyGroup.visible = false;
-    
+function enterLetterScene() {
     perspCamera.position.set(0, 0, 30);
     perspCamera.lookAt(0, 0, 0);
     sceneManager.camera = perspCamera;
-    
+
     letterScene = new LetterScene(sceneManager.scene, sceneManager.camera);
-    
+
     letterScene.onReturnToLobby = () => {
         letterScene.destroy();
         letterScene = null;
@@ -59,11 +56,69 @@ lobby.onEnterLetter = () => {
         sceneManager.camera = orthoCamera;
         lobby.lobbyGroup.visible = true;
         lobby.isTransitioning = false;
-        lobby.player.position.x += 2; 
+        lobby.player.position.x += 2;
     };
+}
+
+function crossfadeGalaxyToLetter() {
+    const veil = document.createElement('div');
+    veil.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background-color: #ffffff;
+        z-index: 20000;
+        pointer-events: auto;
+        opacity: 1;
+        transition: background-color 1.6s ease-in-out, opacity 2.2s ease-in-out;
+    `;
+    document.body.appendChild(veil);
+
+    galaxyExperience.destroy();
+    galaxyExperience = null;
+    canvas.style.display = '';
+    enterLetterScene();
+
+    if (letterScene.startBtn) {
+        letterScene.startBtn.style.opacity = '0';
+        letterScene.startBtn.style.transition = 'opacity 1.4s ease';
+        letterScene.startBtn.style.pointerEvents = 'none';
+    }
+
+    requestAnimationFrame(() => {
+        void veil.offsetHeight;
+
+        setTimeout(() => {
+            veil.style.backgroundColor = '#000000';
+        }, 350);
+
+        setTimeout(() => {
+            veil.style.opacity = '0';
+            if (letterScene?.startBtn) {
+                letterScene.startBtn.style.opacity = '1';
+                letterScene.startBtn.style.pointerEvents = 'auto';
+            }
+        }, 2100);
+
+        setTimeout(() => {
+            veil.remove();
+        }, 4400);
+    });
+}
+
+// --- EVENTO 1: Galaxia + Carta (Puerta 1) ---
+lobby.onEnterLetter = () => {
+    lobby.lobbyGroup.visible = false;
+    canvas.style.display = 'none';
+
+    galaxyExperience = initGalaxyExperience({
+        mountNode: document.body,
+        onComplete: () => {
+            crossfadeGalaxyToLetter();
+        },
+    });
 };
 
-// --- EVENTO 2: Transición al Concierto de BTS (Puerta Derecha) ---
+// --- EVENTO 2: Transición al Concierto de BTS (Puerta 2) ---
 lobby.onEnterStadium = () => {
     sceneManager.scene.fog = null;
     lobby.lobbyGroup.visible = false;
@@ -81,26 +136,6 @@ lobby.onEnterStadium = () => {
         lobby.isTransitioning = false;
         lobby.player.position.x -= 2; 
     };
-};
-
-// --- EVENTO 3: Transición a la experiencia galáctica (Puerta 3) ---
-lobby.onEnterNave = () => {
-    lobby.lobbyGroup.visible = false;
-    canvas.style.display = 'none';
-
-    galaxyExperience = initGalaxyExperience({
-        mountNode: document.body,
-        onReturnToLobby: () => {
-            galaxyExperience.destroy();
-            galaxyExperience = null;
-            lobby.openLastGiftBox();
-            canvas.style.display = '';
-            sceneManager.camera = orthoCamera;
-            lobby.lobbyGroup.visible = true;
-            lobby.isTransitioning = false;
-            lobby.player.position.x += 2;
-        },
-    });
 };
 
 // Bucle principal de renderizado

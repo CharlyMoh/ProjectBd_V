@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 
-export function initGalaxyExperience({ mountNode = document.body, onReturnToLobby = null } = {}) {
+export function initGalaxyExperience({
+    mountNode = document.body,
+    onComplete = null,
+} = {}) {
     const root = mountNode;
     if (!root) return;
 
@@ -79,35 +82,15 @@ export function initGalaxyExperience({ mountNode = document.body, onReturnToLobb
     const message = document.createElement('div');
     message.className = 'galaxy-scene-message';
     message.textContent = 'AQUÍ INICIA TU SIGUIENTE EVENTO';
+    if (onComplete) {
+        message.style.display = 'none';
+    }
     whiteout.appendChild(message);
     mount.appendChild(whiteout);
 
     const overlay = document.createElement('div');
     overlay.className = 'galaxy-scene-overlay';
     mount.appendChild(overlay);
-
-    const btnVolver = document.createElement('button');
-    btnVolver.textContent = 'VOLVER AL PASILLO';
-    btnVolver.style.cssText = `
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        pointer-events: auto;
-        z-index: 30;
-        padding: 12px 24px;
-        font-family: 'Courier New', Courier, monospace;
-        font-weight: bold;
-        background: rgba(10, 0, 20, 0.8);
-        color: #00d2ff;
-        border: 2px solid #00d2ff;
-        border-radius: 20px;
-        cursor: pointer;
-        box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
-    `;
-    btnVolver.addEventListener('click', () => {
-        if (onReturnToLobby) onReturnToLobby();
-    });
-    mount.appendChild(btnVolver);
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x1a0000, 0.0035);
@@ -380,6 +363,7 @@ export function initGalaxyExperience({ mountNode = document.body, onReturnToLobb
     let isWhiteout = false;
     let animationFrameId = null;
     let isDestroyed = false;
+    let completeTimeoutId = null;
 
     function animate() {
         if (isDestroyed) return;
@@ -462,8 +446,16 @@ export function initGalaxyExperience({ mountNode = document.body, onReturnToLobb
         if (camera.position.z <= GALAXY_Z - 220 && !isWhiteout) {
             isWhiteout = true;
             whiteout.style.opacity = 1;
-            message.style.opacity = 1;
             hud.style.opacity = 0;
+
+            if (onComplete) {
+                completeTimeoutId = setTimeout(() => {
+                    completeTimeoutId = null;
+                    if (!isDestroyed) onComplete();
+                }, 2000);
+            } else {
+                message.style.opacity = 1;
+            }
         }
 
         if (redMaterial.opacity > 0) {
@@ -499,6 +491,10 @@ export function initGalaxyExperience({ mountNode = document.body, onReturnToLobb
         renderer,
         destroy() {
             isDestroyed = true;
+            if (completeTimeoutId !== null) {
+                clearTimeout(completeTimeoutId);
+                completeTimeoutId = null;
+            }
             if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
             window.removeEventListener('resize', onResize);
             renderer.dispose();
