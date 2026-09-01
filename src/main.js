@@ -93,10 +93,8 @@ function crossfadeGalaxyToLetter() {
 
         setTimeout(() => {
             veil.style.opacity = '0';
-            if (letterScene?.startBtn) {
-                letterScene.startBtn.style.opacity = '1';
-                letterScene.startBtn.style.pointerEvents = 'auto';
-            }
+            // Inicia el contador de 2 segundos para mostrar el botón
+            letterScene.show();
         }, 2100);
 
         setTimeout(() => {

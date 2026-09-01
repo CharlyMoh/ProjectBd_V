@@ -25,6 +25,10 @@ export class LetterScene {
         this.isLetterOpen = false;
         this.backgroundFade = 1;
 
+        // Control de tiempo para mostrar botón
+        this.sceneStartTime = null; // Se inicializa cuando show() es llamado
+        this.buttonShown = false;
+
         this.initUniverse();
         this.initComets();
         this.initParticles(); // 
@@ -421,7 +425,7 @@ export class LetterScene {
         this.uiContainer.style.width = '100%';
         this.uiContainer.style.height = '100%';
         this.uiContainer.style.zIndex = '9999';
-        this.uiContainer.style.pointerEvents = 'none';
+        this.uiContainer.style.pointerEvents = 'auto';
         this.uiContainer.style.display = 'flex';
         this.uiContainer.style.justifyContent = 'center';
         this.uiContainer.style.alignItems = 'center';
@@ -443,25 +447,17 @@ export class LetterScene {
         this.uiContainer.appendChild(this.overlay);
 
         this.startBtn = document.createElement('button');
-        this.startBtn.innerText = "ABRIR CARTA";
-        this.startBtn.style.padding = '15px 40px';
-        this.startBtn.style.fontSize = '18px';
-        this.startBtn.style.fontFamily = '"Courier New", Courier, monospace';
-        this.startBtn.style.fontWeight = 'bold';
-        this.startBtn.style.color = '#ffffff';
-        this.startBtn.style.background = 'linear-gradient(90deg, #ff1493, #ffaa00)';
-        this.startBtn.style.border = 'none';
-        this.startBtn.style.borderRadius = '30px';
-        this.startBtn.style.boxShadow = '0 0 20px rgba(255, 20, 147, 0.6)';
-        this.startBtn.style.cursor = 'pointer';
+        this.startBtn.id = 'btn-abrir-carta';
+
+        // Texto con formato de advertencia / transmisión entrante
+        this.startBtn.innerHTML = "⚠ MENSAJE RECIBIDO ⚠";
+
+        this.startBtn.style.position = 'relative';
+        this.startBtn.style.zIndex = "999999";
         this.startBtn.style.pointerEvents = 'auto';
-        this.startBtn.style.transition = 'transform 0.2s';
-
-        this.startBtn.style.zIndex = "30";
-
-        this.startBtn.onmouseover = () => { this.startBtn.style.transform = 'scale(1.05)'; };
-        this.startBtn.onmouseout = () => { this.startBtn.style.transform = 'scale(1)'; };
-
+        this.startBtn.style.opacity = '0';
+        this.startBtn.style.transform = 'translateY(20px) scale(0.96)';
+        this.startBtn.style.transition = 'opacity 1.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 1.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
         this.uiContainer.appendChild(this.startBtn);
 
         this.letterScrollContainer = document.createElement('div');
@@ -697,6 +693,14 @@ export class LetterScene {
             }
         });
 
+        // Mostrar botón después de 2 segundos desde que se inició la escena (cuando show() fue llamado)
+        if (!this.buttonShown && this.sceneStartTime !== null && Date.now() - this.sceneStartTime >= 2000) {
+            this.startBtn.style.opacity = '1';
+            this.startBtn.style.transform = 'translateY(0) scale(1)';
+            this.startBtn.style.pointerEvents = 'auto';
+            this.buttonShown = true;
+        }
+
         if (this.isLetterOpen) {
             this.backgroundFade += (0.60 - this.backgroundFade) * 0.02;
             this.universeParticles.material.opacity = this.backgroundFade;
@@ -750,6 +754,12 @@ export class LetterScene {
 
         this.particles.geometry.attributes.position.needsUpdate = true;
         this.particles.rotation.set(0, 0, 0);
+    }
+
+    // Llamar este método cuando LetterScene está completamente visible/lista
+    show() {
+        this.sceneStartTime = Date.now();
+        this.buttonShown = false;
     }
 
     destroy() {

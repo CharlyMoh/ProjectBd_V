@@ -67,6 +67,130 @@ button:hover {
     box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
 }
 
+/* Animación de entrada con retardo de 2 segundos */
+@keyframes alertEntrance {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.7);
+        filter: blur(10px);
+    }
+    70% {
+        transform: translate(-50%, -50%) scale(1.06);
+        filter: blur(0px);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+        filter: blur(0px);
+    }
+}
+
+/* Pulso continuo en Rojo (Sin bordes blancos) */
+@keyframes warningPulseRed {
+    0%, 100% {
+        box-shadow: 0 0 25px rgba(255, 0, 51, 0.35), inset 0 0 15px rgba(255, 0, 51, 0.15);
+        border-color: #ff0033;
+    }
+    50% {
+        box-shadow: 0 0 50px rgba(255, 0, 51, 0.85), inset 0 0 25px rgba(255, 0, 51, 0.35);
+        border-color: #ff2a55; /* Rojo brillante en lugar de blanco */
+    }
+}
+
+/* Movimiento continuo de las franjas de advertencia */
+@keyframes hazardSlide {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 0; }
+}
+
+/* BOTÓN DE ALERTA ROJA */
+#btn-abrir-carta {
+    position: relative;
+    
+    /* Fondo oscuro con tinte carmesí */
+    background: rgba(14, 2, 4, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    
+    /* Tipografía y color */
+    color: #ff0033;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    
+    padding: 24px 44px;
+    border-left: 3px solid #ff0033;
+    border-right: 3px solid #ff0033;
+    border-top: none;
+    border-bottom: none;
+    border-radius: 4px;
+    cursor: pointer;
+    
+    transition: opacity 1.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                transform 1.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                background 0.3s ease, 
+                box-shadow 0.3s ease;
+    user-select: none;
+    outline: none;
+    pointer-events: auto !important;
+    z-index: 999999 !important;
+}
+
+/* Franja superior roja/negra */
+#btn-abrir-carta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: repeating-linear-gradient(
+        -45deg,
+        #ff0033,
+        #ff0033 9px,
+        #0e0204 9px,
+        #0e0204 18px
+    );
+    animation: hazardSlide 2s linear infinite;
+    pointer-events: none;
+}
+
+/* Franja inferior roja/negra */
+#btn-abrir-carta::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: repeating-linear-gradient(
+        -45deg,
+        #ff0033,
+        #ff0033 9px,
+        #0e0204 9px,
+        #0e0204 18px
+    );
+    animation: hazardSlide 2s linear infinite;
+    pointer-events: none;
+}
+
+/* Asegurar que el botón sea interactivo incluso con opacity */
+#btn-abrir-carta {
+    pointer-events: auto !important;
+}
+
+/* Hover al pasar el mouse */
+#btn-abrir-carta:hover {
+    background: rgba(255, 0, 51, 0.22);
+    color: #ffffff;
+    border-color: #ff0033;
+    transform: scale(1.05);
+    box-shadow: 0 0 60px rgba(255, 0, 51, 1), inset 0 0 30px rgba(255, 0, 51, 0.5);
+    pointer-events: auto !important;
+}
+
 /* ================================================
    BIRTHDAY LOBBY STYLES (BirthdayLobby.js)
    ================================================
