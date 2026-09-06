@@ -7,7 +7,7 @@ import { initGalaxyExperience } from './World/galaxyExperience.js';
 
 const canvas = document.querySelector('canvas.webgl');
 const uiContainer = document.getElementById('ui-container');
-const btnEntrar = document.getElementById('btn-entrar');
+const timeElement = document.getElementById('real-time');
 
 const sceneManager = new SceneManager(canvas);
 
@@ -160,8 +160,26 @@ const tick = () => {
     window.requestAnimationFrame(tick);
 };
 
-btnEntrar.addEventListener('click', () => {
-    uiContainer.style.opacity = '0';
-    setTimeout(() => { uiContainer.style.display = 'none'; }, 500);
+function setRealTime() {
+    const now = new Date();
+    let hours = now.getHours();
+    let minutes = now.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    minutes = minutes < 10 ? `0${minutes}` : minutes;
+
+    timeElement.innerText = `${hours}:${minutes} ${ampm}`;
+}
+
+setRealTime();
+
+setTimeout(() => {
     tick();
-});
+    uiContainer.style.opacity = '0';
+
+    setTimeout(() => {
+        uiContainer.style.display = 'none';
+    }, 3000);
+}, 4000);

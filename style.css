@@ -1,13 +1,14 @@
 * {
     margin: 0;
     padding: 0;
-    box-space: border-box;
+    box-sizing: border-box; /* Corregido de box-space a box-sizing */
 }
 
 html, body {
     overflow: hidden;
-    background-color: #050505;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #000; /* Fondo negro absoluto */
+    /* Usamos la fuente retro que importamos en el HTML */
+    font-family: 'VT323', monospace; 
 }
 
 .webgl {
@@ -28,43 +29,36 @@ html, body {
     justify-content: center;
     align-items: center;
     z-index: 10;
-    background: rgba(0, 0, 0, 0.75);
-    transition: opacity 0.5s ease;
+    background: #000000; /* Fondo sólido para tapar todo el 3D */
+    transition: opacity 3s ease-in-out; /* Desvanecimiento suave hacia el lobby */
 }
 
-.card {
+/* Contenedor del texto con animación de aparición y desaparición */
+.fnaf-intro {
     text-align: center;
     color: white;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    padding: 40px;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* La animación dura 4 segundos en total */
+    animation: fnafTextAnim 4s forwards; 
 }
 
-h1 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px #ff007f;
+.fnaf-intro h1 {
+    font-size: 5rem; /* Letras grandes */
+    font-weight: normal;
+    margin-bottom: 5px;
+    letter-spacing: 4px;
 }
 
-button {
-    margin-top: 25px;
-    padding: 12px 30px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: white;
-    background: linear-gradient(45deg, #ff007f, #7f00ff);
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+.fnaf-intro p {
+    font-size: 3rem;
+    letter-spacing: 3px;
 }
 
-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
+/* Animación del texto estilo FNAF */
+@keyframes fnafTextAnim {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; } /* Se desvanece el texto ANTES que el fondo negro */
 }
 
 /* Animación de entrada con retardo de 2 segundos */
