@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { assetPath } from '../Core/assetPath.js';
 
 export function initGalaxyExperience({
     mountNode = document.body,
@@ -29,7 +30,7 @@ export function initGalaxyExperience({
         .galaxy-scene-overlay {
             position: absolute;
             inset: 0;
-            background-image: url('/assets/nave_nbackground.png');
+            background-image: url('${assetPath('nave_nbackground.png')}');
             background-size: cover;
             background-position: center;
             pointer-events: none;

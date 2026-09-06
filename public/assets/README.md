@@ -1,6 +1,7 @@
 # Assets - Recursos del Proyecto
 
 Carpeta centralizada para todos los archivos multimedia del proyecto StadiumProjectBd.
+En el proyecto fuente se encuentra en `public/assets/` para que Vite los copie al build.
 
 ## Estructura de Archivos
 
@@ -42,7 +43,7 @@ Carpeta centralizada para todos los archivos multimedia del proyecto StadiumProj
 
 ## Rutas de Carga
 
-Todos los archivos se cargan desde la raíz del proyecto con el prefijo `/assets/`:
+En el navegador, todos los archivos se cargan con el prefijo `/assets/` relativo a la base de Vite:
 
 ```javascript
 // Ejemplo en BirthdayLobby.js

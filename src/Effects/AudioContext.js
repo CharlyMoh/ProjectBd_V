@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { assetPath } from '../Core/assetPath.js';
 
 export class AudioContextManager {
     constructor(camera) {
@@ -15,7 +16,7 @@ export class AudioContextManager {
         const ambientSound = new THREE.Audio(this.listener);
         const audioLoader = new THREE.AudioLoader();
 
-        audioLoader.load('/assets/ambient-stadium.mp3', (buffer) => {
+        audioLoader.load(assetPath('ambient-stadium.mp3'), (buffer) => {
             ambientSound.setBuffer(buffer);
             ambientSound.setLoop(true);
             ambientSound.setVolume(0.3); // Volumen tenue para que no tape la música

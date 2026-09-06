@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { assetPath } from '../Core/assetPath.js';
 
 export class ScreenStage {
     constructor() {
@@ -7,7 +8,7 @@ export class ScreenStage {
 
     initVideoTexture() {
         this.video = document.createElement('video');
-        this.video.src = '/assets/bts-concert.mp4';
+        this.video.src = assetPath('bts-concert.mp4');
         this.video.loop = true;
         this.video.muted = false;
         this.video.playsInline = true;
