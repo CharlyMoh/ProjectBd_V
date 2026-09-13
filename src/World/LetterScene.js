@@ -13,6 +13,10 @@ export class LetterScene {
         this.comets = [];
 
         this.targetPositions = [];
+        this.textFormationStartPositions = null;
+        this.textFormationStartTime = 0;
+        this.textFormationDuration = 3200;
+        this.textFormationComplete = false;
         this.isFormingText = false;
         this.textFormationInitialized = false;
 
@@ -28,6 +32,11 @@ export class LetterScene {
         // Control de tiempo para mostrar botón
         this.sceneStartTime = null; // Se inicializa cuando show() es llamado
         this.buttonShown = false;
+        this.isEmergencyMode = false;
+        this.emergencyStartTime = 0;
+        this.emergencyDuration = 1800;
+        this.emergencyColorState = [];
+        this.letterRevealTimeout = null;
 
         this.initUniverse();
         this.initComets();
@@ -362,7 +371,7 @@ export class LetterScene {
                 const alpha = data[(x + y * canvas.width) * 4 + 3];
                 if (alpha > 128) {
                     // 1. POSICIONES FINALES (El texto plano frente a la cámara)
-                    const scale = 0.05;
+                    const scale = 0.04;
                     const tx = (x - 512) * scale;
                     const ty = -(y - 128) * scale;
                     const tz = (Math.random() - 0.5) * 1.5;
@@ -400,12 +409,13 @@ export class LetterScene {
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(initialPositions, 3));
 
         const material = new THREE.PointsMaterial({
-            size: 1.15,
+            size: 0.85,
             color: "#ffd700", // Color del texto (Nombre)
             transparent: true,
             opacity: 1.0,
             blending: THREE.AdditiveBlending,
-            depthWrite: false
+            depthWrite: false,
+            depthTest: false
         });
 
         this.particles = new THREE.Points(geometry, material);
@@ -413,6 +423,7 @@ export class LetterScene {
         // Colocamos estas partículas exactamente en la misma rotación y posición que la galaxia base
         this.particles.position.set(0, 5, -60);
         this.particles.rotation.x = Math.PI * 0.35;
+        this.particles.renderOrder = 10;
 
         this.group.add(this.particles);
     }
@@ -477,23 +488,16 @@ export class LetterScene {
 
         // Posición
         this.letterContent.style.maxWidth = '900px';
-        this.letterContent.style.margin = '180px auto 120px auto';
-        this.letterContent.style.padding = '60px';
+        this.letterContent.style.margin = '245px auto 100px auto';
+        this.letterContent.style.padding = '42px 50px';
 
         // Apariencia
-        this.letterContent.style.background = 'rgba(10,18,35,0.42)';
-        this.letterContent.style.backdropFilter = 'blur(18px)';
-        this.letterContent.style.border = '1px solid rgba(255,255,255,0.15)';
-        this.letterContent.style.borderRadius = '30px';
-        this.letterContent.style.boxShadow = '0 20px 80px rgba(0,0,0,0.45)';
+        this.letterContent.className = 'space-card-container';
 
         // Texto
-        this.letterContent.style.color = '#ffffff';
-        this.letterContent.style.fontFamily = '"Courier New", Courier, monospace';
         this.letterContent.style.fontSize = '22px';
         this.letterContent.style.lineHeight = '2';
         this.letterContent.style.textAlign = 'center';
-        this.letterContent.style.textShadow = '0 4px 15px rgba(0,0,0,.8)';
 
         // Animación inicial (opcional)
         this.letterContent.style.opacity = '0';
@@ -503,6 +507,8 @@ export class LetterScene {
 
         // Mensaje de la carta
         this.letterContent.innerHTML = `
+        <p class="journal-status">[ BITÁCORA // MODO EMERGENCIA ]</p>
+
         <p>Hola,</p>
 
         <p>
@@ -555,14 +561,17 @@ export class LetterScene {
 
         this.startBtn.addEventListener('click', () => {
             this.startBtn.style.display = 'none';
+            this.transformToPetrovaLine();
             this.isFormingText = true;
 
-            this.isLetterOpen = true;
+            // Primero se forma el titulo 3D; la bitacora entra cuando ya es legible.
+            this.overlay.style.background = "rgba(24,0,4,.12)";
+            this.overlay.style.backdropFilter = "blur(1px)";
 
-            this.overlay.style.background = "rgba(2,8,20,.38)";
-            this.overlay.style.backdropFilter = "blur(4px)";
-
-            setTimeout(() => {
+            this.letterRevealTimeout = setTimeout(() => {
+                this.isLetterOpen = true;
+                this.overlay.style.background = "rgba(24,0,4,.20)";
+                this.overlay.style.backdropFilter = "blur(2px)";
                 this.letterScrollContainer.style.display = 'block';
                 requestAnimationFrame(() => {
                     this.letterContent.style.opacity = '1';
@@ -576,8 +585,85 @@ export class LetterScene {
                 btnVolver.addEventListener('click', () => {
                     if (this.onReturnToLobby) this.onReturnToLobby();
                 });
-            }, 4500);
+            }, this.textFormationDuration + 300);
         });
+    }
+
+    transformToPetrovaLine() {
+        this.isEmergencyMode = true;
+        this.emergencyStartTime = performance.now();
+        this.emergencyColorState = [];
+
+        const petrovaPalette = [
+            new THREE.Color('#ff1838'),
+            new THREE.Color('#c90824'),
+            new THREE.Color('#ff4b24'),
+            new THREE.Color('#6d0616')
+        ];
+
+        if (this.universeParticles) {
+            const colorAttribute = this.universeParticles.geometry.attributes.color;
+            const startColors = colorAttribute.array.slice();
+            const targetColors = new Float32Array(startColors.length);
+
+            for (let i = 0; i < colorAttribute.count; i++) {
+                const color = petrovaPalette[Math.floor(Math.random() * petrovaPalette.length)];
+                const i3 = i * 3;
+                targetColors[i3] = color.r;
+                targetColors[i3 + 1] = color.g;
+                targetColors[i3 + 2] = color.b;
+            }
+
+            this.emergencyColorState.push({ colorAttribute, startColors, targetColors });
+        }
+
+        if (this.coreParticles) {
+            this.coreParticles.userData.emergencyStartColor = this.coreParticles.material.color.clone();
+            this.coreParticles.userData.emergencyTargetColor = new THREE.Color('#ff1736');
+        }
+
+        if (this.ambientStars) {
+            this.ambientStars.userData.emergencyStartColor = this.ambientStars.material.color.clone();
+            this.ambientStars.userData.emergencyTargetColor = new THREE.Color('#9d1028');
+        }
+
+        this.comets.forEach(comet => {
+            comet.userData.emergencyStartColor = comet.material.color.clone();
+            comet.userData.emergencyTargetColor = new THREE.Color('#ff253f');
+        });
+    }
+
+    updateEmergencyTransition() {
+        const progress = Math.min(
+            (performance.now() - this.emergencyStartTime) / this.emergencyDuration,
+            1
+        );
+        const easedProgress = progress * progress * (3 - 2 * progress);
+
+        this.emergencyColorState.forEach(({ colorAttribute, startColors, targetColors }) => {
+            for (let i = 0; i < colorAttribute.array.length; i++) {
+                colorAttribute.array[i] = THREE.MathUtils.lerp(
+                    startColors[i],
+                    targetColors[i],
+                    easedProgress
+                );
+            }
+            colorAttribute.needsUpdate = true;
+        });
+
+        const tintMaterial = (object) => {
+            if (!object?.userData.emergencyStartColor) return;
+            object.material.color.copy(object.userData.emergencyStartColor).lerp(
+                object.userData.emergencyTargetColor,
+                easedProgress
+            );
+        };
+
+        tintMaterial(this.coreParticles);
+        tintMaterial(this.ambientStars);
+        this.comets.forEach(tintMaterial);
+
+        if (progress >= 1) this.isEmergencyMode = false;
     }
 
     initMouseTracking() {
@@ -588,6 +674,8 @@ export class LetterScene {
     }
 
     update(time) {
+        if (this.isEmergencyMode) this.updateEmergencyTransition();
+
         // La galaxia de fondo gira incesantemente
         if (this.universeParticles) {
 
@@ -702,39 +790,64 @@ export class LetterScene {
         }
 
         if (this.isLetterOpen) {
-            this.backgroundFade += (0.60 - this.backgroundFade) * 0.02;
+            this.backgroundFade += (0.82 - this.backgroundFade) * 0.02;
             this.universeParticles.material.opacity = this.backgroundFade;
             this.coreParticles.material.opacity =
-                Math.min(this.backgroundFade, 0.35);
+                Math.min(this.backgroundFade, 0.48);
             this.ambientStars.material.opacity =
-                Math.min(this.backgroundFade * 0.5, 0.08);
+                Math.min(this.backgroundFade * 0.6, 0.16);
         }
 
         if (this.isFormingText && this.particles) {
             if (!this.textFormationInitialized) {
                 this.bakeParticleRotationIntoPositions();
+                this.textFormationStartPositions =
+                    this.particles.geometry.attributes.position.array.slice();
+                this.textFormationStartTime = performance.now();
                 this.textFormationInitialized = true;
             }
 
             const target = {
                 x: 0,
-                y: 9,
-                z: 0
+                y: 8.5,
+                z: 4.5
             };
 
-            this.particles.position.x += (target.x - this.particles.position.x) * 0.02;
-            this.particles.position.y += (target.y - this.particles.position.y) * 0.02;
-            this.particles.position.z += (target.z - this.particles.position.z) * 0.02;
+            const progress = Math.min(
+                (performance.now() - this.textFormationStartTime) /
+                this.textFormationDuration,
+                1
+            );
+            const easedProgress = progress * progress * (3 - 2 * progress);
+
+            this.particles.position.lerpVectors(
+                new THREE.Vector3(0, 5, -60),
+                new THREE.Vector3(target.x, target.y, target.z),
+                easedProgress
+            );
 
             const positions = this.particles.geometry.attributes.position.array;
+            const startPositions = this.textFormationStartPositions;
             for (let i = 0; i < this.targetPositions.length; i++) {
                 const ix = i * 3, iy = i * 3 + 1, iz = i * 3 + 2;
-                positions[ix] += (this.targetPositions[i].x - positions[ix]) * 0.03;
-                positions[iy] += (this.targetPositions[i].y - positions[iy]) * 0.03;
-                positions[iz] += (this.targetPositions[i].z - positions[iz]) * 0.03;
+                positions[ix] = THREE.MathUtils.lerp(
+                    startPositions[ix], this.targetPositions[i].x, easedProgress
+                );
+                positions[iy] = THREE.MathUtils.lerp(
+                    startPositions[iy], this.targetPositions[i].y, easedProgress
+                );
+                positions[iz] = THREE.MathUtils.lerp(
+                    startPositions[iz], this.targetPositions[i].z, easedProgress
+                );
             }
             this.particles.geometry.attributes.position.needsUpdate = true;
-        } else if (this.particles) {
+
+            if (progress >= 1) {
+                this.particles.position.set(target.x, target.y, target.z);
+                this.isFormingText = false;
+                this.textFormationComplete = true;
+            }
+        } else if (this.particles && !this.textFormationComplete) {
             this.particles.rotation.z -= 0.0015;
         }
     }
@@ -763,6 +876,7 @@ export class LetterScene {
     }
 
     destroy() {
+        if (this.letterRevealTimeout) clearTimeout(this.letterRevealTimeout);
         this.scene.remove(this.group);
         if (this.uiContainer) this.uiContainer.remove();
     }

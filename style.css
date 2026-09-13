@@ -185,6 +185,54 @@ html, body {
     pointer-events: auto !important;
 }
 
+/* --- Bitacora de emergencia --- */
+.titulo-carta {
+    color: #ffbe00;
+    font-family: 'Courier New', monospace;
+    font-weight: 900;
+    letter-spacing: 6px;
+    text-shadow:
+        0 0 10px #000,
+        0 0 20px #000,
+        0 0 40px #000,
+        0 0 80px rgba(0, 0, 0, 0.8),
+        0 0 10px rgba(255, 190, 0, 0.5);
+    position: relative;
+    z-index: 40;
+}
+
+.space-card-container {
+    position: relative;
+    z-index: 35;
+    padding: 35px 50px;
+    color: #f8fafc;
+    font-family: 'Courier New', monospace;
+    background: rgba(14, 2, 4, 0.48);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 0, 51, 0.3);
+    border-top: 3px solid #ff0033;
+    border-bottom: 3px solid #ff0033;
+    border-radius: 4px;
+    box-shadow: 0 0 32px rgba(0, 0, 0, 0.72), inset 0 0 20px rgba(255, 0, 51, 0.08);
+}
+
+.space-card-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 4px;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.journal-status {
+    color: #ff4057;
+    font-size: 0.7em;
+    letter-spacing: 3px;
+}
+
 /* ================================================
    BIRTHDAY LOBBY STYLES (BirthdayLobby.js)
    ================================================
