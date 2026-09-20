@@ -13,6 +13,7 @@ export class LetterScene {
         this.comets = [];
 
         this.targetPositions = [];
+        this.textParticleMotion = [];
         this.textFormationStartPositions = null;
         this.textFormationStartTime = 0;
         this.textFormationDuration = 3200;
@@ -385,6 +386,14 @@ export class LetterScene {
                             tz
                         )
                     );
+
+                    this.textParticleMotion.push({
+                        phase: Math.random() * Math.PI * 2,
+                        frequency: 0.7 + Math.random() * 0.7,
+                        amplitudeX: 0.035 + Math.random() * 0.055,
+                        amplitudeY: 0.035 + Math.random() * 0.055,
+                        amplitudeZ: 0.045 + Math.random() * 0.065
+                    });
 
                     // 2. POSICIONES INICIALES (¡Nacen de la misma Galaxia Espiral!)
                     const maxRadius = 90;
@@ -847,6 +856,24 @@ export class LetterScene {
                 this.isFormingText = false;
                 this.textFormationComplete = true;
             }
+        } else if (this.particles && this.textFormationComplete) {
+            const positions = this.particles.geometry.attributes.position.array;
+
+            for (let i = 0; i < this.targetPositions.length; i++) {
+                const targetPosition = this.targetPositions[i];
+                const motion = this.textParticleMotion[i];
+                const particleTime = time * motion.frequency + motion.phase;
+                const i3 = i * 3;
+
+                positions[i3] = targetPosition.x +
+                    Math.sin(particleTime) * motion.amplitudeX;
+                positions[i3 + 1] = targetPosition.y +
+                    Math.sin(particleTime * 0.83 + motion.phase) * motion.amplitudeY;
+                positions[i3 + 2] = targetPosition.z +
+                    Math.cos(particleTime * 0.71 + motion.phase) * motion.amplitudeZ;
+            }
+
+            this.particles.geometry.attributes.position.needsUpdate = true;
         } else if (this.particles && !this.textFormationComplete) {
             this.particles.rotation.z -= 0.0015;
         }

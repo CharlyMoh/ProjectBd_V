@@ -75,6 +75,24 @@ export class Pyrotechnics {
         this.showTimeouts = [];
     }
 
+    stopAll() {
+        this.clearPendingShow();
+
+        for (const rocket of this.activeRockets) {
+            this.group.remove(rocket.mesh);
+            rocket.mesh.geometry.dispose();
+            rocket.mesh.material.dispose();
+        }
+        this.activeRockets = [];
+
+        for (const firework of this.activeFireworks) {
+            this.group.remove(firework.mesh);
+            firework.mesh.geometry.dispose();
+            firework.mesh.material.dispose();
+        }
+        this.activeFireworks = [];
+    }
+
     triggerStageSparks() {
         const distFromCenter = 16.5;
         const angles = [
@@ -381,19 +399,6 @@ export class Pyrotechnics {
     }
 
     destroy() {
-        this.clearPendingShow();
-        for (let rocket of this.activeRockets) {
-            this.group.remove(rocket.mesh);
-            rocket.mesh.geometry.dispose();
-            rocket.mesh.material.dispose();
-        }
-        this.activeRockets = [];
-
-        for (let fw of this.activeFireworks) {
-            this.group.remove(fw.mesh);
-            fw.mesh.geometry.dispose();
-            fw.mesh.material.dispose();
-        }
-        this.activeFireworks = [];
+        this.stopAll();
     }
 }

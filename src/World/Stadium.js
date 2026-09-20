@@ -16,6 +16,10 @@ export class Stadium {
         this.targetCamPos = new THREE.Vector3();
         this.targetLookAt = new THREE.Vector3();
         this.currentLookAt = new THREE.Vector3(0, 4, 0);
+        this.cameraTransition = 0;
+        this.grandShowStarted = false;
+        this.finaleCameraStarted = false;
+        this.showEnded = false;
 
         // --- SISTEMA DE PIROTECNIA Y AUDIO ---
         this.pyrotechnics = new Pyrotechnics(this.stadiumGroup);
@@ -37,10 +41,11 @@ export class Stadium {
         this.video = document.createElement('video');
         this.video.src = '/assets/bts-concert.mp4'; 
         this.video.load();
-        this.video.loop = true;
+        this.video.loop = false;
         this.video.muted = true; // Empieza en silenciador por políticas del navegador
         this.video.playsInline = true;
         this.video.setAttribute('playsinline', '');
+        this.video.addEventListener('ended', () => this.handleShowEnd());
 
         this.video.play().catch(error => {
             console.log("Esperando interacción para reproducir video:", error);
@@ -222,7 +227,8 @@ export class Stadium {
         // Botón "VOLVER AL PASILLO"
         const btnVolver = document.createElement('button');
         btnVolver.innerText = "← VOLVER AL PASILLO";
-        btnVolver.style.cssText = "padding: 12px 24px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(10, 0, 20, 0.8); color: #00d2ff; border: 2px solid #00d2ff; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(0,210,255,0.4); transition: all 0.3s;";
+        btnVolver.style.cssText = "display: none; padding: 12px 24px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(10, 0, 20, 0.8); color: #00d2ff; border: 2px solid #00d2ff; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(0,210,255,0.4); transition: all 0.3s;";
+        this.returnButton = btnVolver;
         btnVolver.onmouseover = () => { btnVolver.style.background = '#00d2ff'; btnVolver.style.color = '#000000'; };
         btnVolver.onmouseout = () => { btnVolver.style.background = 'rgba(10, 0, 20, 0.8)'; btnVolver.style.color = '#00d2ff'; };
         btnVolver.addEventListener('click', () => { if (this.onReturnToLobby) this.onReturnToLobby(); });
@@ -256,91 +262,48 @@ export class Stadium {
         this.uiContainer.appendChild(btnAudio);
         document.body.appendChild(this.uiContainer);
 
-        // Barra de Cámaras y Pirotecnia (Centrada Abajo)
-        this.cameraControlsContainer = document.createElement('div');
-        this.cameraControlsContainer.style.cssText = "position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; gap: 15px; align-items: center;";
-
-        this.camButtons = {};
-
-        const createCamBtn = (text, mode) => {
-            const btn = document.createElement('button');
-            btn.innerText = text;
-            btn.style.cssText = "padding: 10px 22px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; background: rgba(10, 0, 20, 0.85); color: #ff00cc; border: 2px solid #ff00cc; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,204,0.3); transition: all 0.3s;";
-            
-            btn.onmouseover = () => { btn.style.background = '#ff00cc'; btn.style.color = '#000000'; };
-            btn.onmouseout = () => { btn.style.background = 'rgba(10, 0, 20, 0.85)'; btn.style.color = '#ff00cc'; };
-            
-            btn.onclick = () => { 
-                this.currentCameraMode = mode;
-                this.updateCameraButtons();
-            };
-
-            this.camButtons[mode] = btn;
-            return btn;
-        };
-
-        this.cameraControlsContainer.appendChild(createCamBtn("DRON", 'dron'));
-        this.cameraControlsContainer.appendChild(createCamBtn("VIP", 'vip'));
-        this.cameraControlsContainer.appendChild(createCamBtn("ESCENARIO", 'escenario'));
-
-        const btnPyro = document.createElement('button');
-        btnPyro.innerText = "SHOW PIROTECNIA";
-        btnPyro.style.cssText = "padding: 10px 22px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; background: rgba(10, 0, 20, 0.85); color: #ffbe00; border: 2px solid #ffbe00; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,190,0,0.4); transition: all 0.3s;";
-        btnPyro.onmouseover = () => { btnPyro.style.background = '#ffbe00'; btnPyro.style.color = '#000000'; };
-        btnPyro.onmouseout = () => { btnPyro.style.background = 'rgba(10, 0, 20, 0.85)'; btnPyro.style.color = '#ffbe00'; };
-        
-        btnPyro.onclick = () => { 
-            this.currentCameraMode = 'vip';
-            this.updateCameraButtons();
-            this.pyrotechnics.startGrandShow(); 
-        };
-
-        this.cameraControlsContainer.appendChild(btnPyro);
-        document.body.appendChild(this.cameraControlsContainer);
-        this.updateCameraButtons();
-    }
-
-    updateCameraButtons() {
-        if (!this.camButtons) return;
-        Object.keys(this.camButtons).forEach(mode => {
-            if (mode === this.currentCameraMode) {
-                this.camButtons[mode].style.display = 'none'; 
-            } else {
-                this.camButtons[mode].style.display = 'inline-block'; 
-            }
-        });
+        this.cameraControlsContainer = null;
     }
 
     update(time) {
-        // --- 1. LÓGICA DE CÁMARAS CINEMÁTICAS ---
+        const videoTime = this.video?.currentTime || 0;
+
+        this.updateBroadcastDirector(videoTime, time);
+
+        // --- 1. CÁMARA CINEMÁTICA AUTOMÁTICA ---
         if (this.camera) {
             if (this.currentCameraMode === 'dron') {
-                const speed = 0.12; 
                 const radius = 68;
+                const descent = Math.min(videoTime / 15, 1);
+                const droneHeight = THREE.MathUtils.lerp(48, 32, descent);
                 this.targetCamPos.set(
-                    Math.sin(time * speed) * radius,
-                    32 + Math.sin(time * 0.3) * 6,
-                    Math.cos(time * speed) * radius
+                    Math.sin(time * 0.12) * radius,
+                    droneHeight + Math.sin(time * 0.3) * 2,
+                    Math.cos(time * 0.12) * radius
                 );
                 this.targetLookAt.set(0, 4, 0);
-                
+
             } else if (this.currentCameraMode === 'vip') {
-                this.targetCamPos.set(0, 3 + Math.sin(time * 2) * 0.15, 25);
+                this.targetCamPos.set(
+                    Math.sin(time * 1.7) * 0.35,
+                    3 + Math.sin(time * 2.1) * 0.2,
+                    25 + Math.cos(time * 1.3) * 0.3
+                );
                 this.targetLookAt.set(0, 10, 0); 
                 
             } else if (this.currentCameraMode === 'escenario') {
-                this.targetCamPos.set(0, 4, 6); 
-                const panX = Math.sin(time * 0.5) * 30; 
-                this.targetLookAt.set(panX, 2, 40); 
+                const panX = Math.sin(time * 0.5) * 30;
+                this.targetCamPos.set(Math.sin(time * 0.35) * 5, 4, 9);
+                this.targetLookAt.set(panX, 2, 40);
             }
 
-            this.camera.position.lerp(this.targetCamPos, 0.03); 
+            this.camera.position.lerp(this.targetCamPos, 0.03);
             this.currentLookAt.lerp(this.targetLookAt, 0.04);
             this.camera.lookAt(this.currentLookAt);
         }
 
         // --- 2. ACTUALIZACIÓN DE PIROTECNIA ---
-        if (this.pyrotechnics) {
+        if (this.pyrotechnics && !this.showEnded) {
             this.pyrotechnics.update(0.016);
         }
 
@@ -360,33 +323,91 @@ export class Stadium {
                 trebleIntensity = (this.dataArray[12] + this.dataArray[14] + this.dataArray[16]) / (3 * 255);
             }
 
-            const cycle = Math.floor(time / 6) % 4; 
-
-            for (let i = 0; i < colorsAttribute.count; i++) {
-                const wave = Math.sin(time * 3 + i * 0.02);
-
-                // Si hay audio activo, el golpe de bajo hace destellar las luces en blanco incandescente
-                if (this.isAudioActive && bassIntensity > 0.45 && Math.random() < bassIntensity) {
-                    colorsAttribute.setXYZ(i, 1.0, 1.0, 1.0); // Golpe de bajo = destello blanco masivo
-                } else {
-                    // Si no, sigue la paleta de colores del tour
-                    if (cycle === 0) {
-                        if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 1.0, 1.0);
-                        else colorsAttribute.setXYZ(i, 0.9, 0.0, 0.0);
-                    } else if (cycle === 1) {
-                        if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 1.0, 1.0);
-                        else colorsAttribute.setXYZ(i, 0.0, 0.8, 0.5);
-                    } else if (cycle === 2) {
-                        if (wave > 0.2) colorsAttribute.setXYZ(i, 0.9, 0.9, 1.0);
-                        else colorsAttribute.setXYZ(i, 0.2, 0.2, 0.4);
-                    } else {
-                        if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 0.5, 1.0);
-                        else colorsAttribute.setXYZ(i, 0.4, 0.0, 0.8);
-                    }
-                }
+            if (this.showEnded) {
+                this.updateBlackoutLights(time, colorsAttribute);
+            } else {
+                this.updateShowLights(time, colorsAttribute);
             }
             colorsAttribute.needsUpdate = true;
         }
+    }
+
+    updateBroadcastDirector(videoTime, time) {
+        if (this.showEnded) return;
+
+        if (videoTime >= 158 && !this.grandShowStarted) {
+            this.grandShowStarted = true;
+            this.pyrotechnics.startGrandShow();
+        }
+
+        if (videoTime >= 169 && !this.finaleCameraStarted) {
+            this.finaleCameraStarted = true;
+            this.currentCameraMode = 'dron';
+        } else if (videoTime < 15) {
+            this.currentCameraMode = 'dron';
+        } else if (videoTime < 158) {
+            const segment = Math.floor((videoTime - 15) / 12) % 3;
+            this.currentCameraMode = ['vip', 'escenario', 'vip'][segment];
+        }
+    }
+
+    updateShowLights(time, colorsAttribute) {
+        let bassIntensity = 0;
+        let trebleIntensity = 0;
+
+        if (this.analyser && this.isAudioActive) {
+            this.analyser.getByteFrequencyData(this.dataArray);
+            bassIntensity = (this.dataArray[1] + this.dataArray[2] + this.dataArray[3] + this.dataArray[4]) / (4 * 255);
+            trebleIntensity = (this.dataArray[12] + this.dataArray[14] + this.dataArray[16]) / (3 * 255);
+        }
+
+        const cycle = Math.floor(time / 6) % 4;
+
+        for (let i = 0; i < colorsAttribute.count; i++) {
+            const wave = Math.sin(time * 3 + i * 0.02);
+
+            if (this.isAudioActive && bassIntensity > 0.45 && Math.random() < bassIntensity) {
+                colorsAttribute.setXYZ(i, 1.0, 1.0, 1.0);
+            } else {
+                if (cycle === 0) {
+                    if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 1.0, 1.0);
+                    else colorsAttribute.setXYZ(i, 0.9, 0.0, 0.0);
+                } else if (cycle === 1) {
+                    if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 1.0, 1.0);
+                    else colorsAttribute.setXYZ(i, 0.0, 0.8, 0.5);
+                } else if (cycle === 2) {
+                    if (wave > 0.2) colorsAttribute.setXYZ(i, 0.9, 0.9, 1.0);
+                    else colorsAttribute.setXYZ(i, 0.2, 0.2, 0.4);
+                } else {
+                    if (wave > 0.6) colorsAttribute.setXYZ(i, 1.0, 0.5, 1.0);
+                    else colorsAttribute.setXYZ(i, 0.4, 0.0, 0.8);
+                }
+            }
+        }
+    }
+
+    updateBlackoutLights(time, colorsAttribute) {
+        const heartbeat = 0.5 + Math.pow((Math.sin(time * 0.9) + 1) / 2, 8) * 0.5;
+        const pink = 0.16 + heartbeat * 0.18;
+        this.pointsMaterial.opacity = 0.22 + heartbeat * 0.12;
+
+        for (let i = 0; i < colorsAttribute.count; i++) {
+            colorsAttribute.setXYZ(i, pink, pink * 0.12, pink * 0.3);
+        }
+    }
+
+    handleShowEnd() {
+        if (this.showEnded) return;
+        this.showEnded = true;
+        this.video.pause();
+        this.video.currentTime = 173;
+
+        this.screensGroup.children.forEach(screen => {
+            screen.material.color.set('#000000');
+        });
+
+        this.pyrotechnics.stopAll();
+        this.returnButton.style.display = 'inline-block';
     }
 
     destroy() {
@@ -411,8 +432,6 @@ export class Stadium {
         if (this.uiContainer) {
             this.uiContainer.remove();
         }
-        if (this.cameraControlsContainer) {
-            this.cameraControlsContainer.remove();
-        }
+        if (this.cameraControlsContainer) this.cameraControlsContainer.remove();
     }
 }
