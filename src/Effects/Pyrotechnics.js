@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { FireworkSFX } from './FireworkSFX.js';
 
 export class Pyrotechnics {
     constructor(parentGroup) {
@@ -6,6 +7,16 @@ export class Pyrotechnics {
         this.activeFireworks = [];
         this.activeRockets = [];
         this.showTimeouts = []; // Para cancelar o reiniciar timeouts del show
+        this.sfx = new FireworkSFX();
+    }
+
+    setAudio(audioCtx, enabled = true) {
+        this.sfx.attach(audioCtx);
+        this.sfx.setEnabled(enabled);
+    }
+
+    setAudioEnabled(enabled) {
+        this.sfx.setEnabled(enabled);
     }
 
     // --- SHOW COREOGRAFIADO COMPLETO (15 SEG) ---
@@ -108,6 +119,7 @@ export class Pyrotechnics {
             this.createStageSparkFountain(new THREE.Vector3(x, 0.7, z));
         });
         this.createStageSparkFountain(new THREE.Vector3(0, 0.8, 0));
+        this.sfx.playFountain();
     }
 
     launchRandomRocket(type = 'peony', overrideColor = null) {
@@ -164,6 +176,8 @@ export class Pyrotechnics {
         const rocketMesh = new THREE.Points(geometry, material);
         this.group.add(rocketMesh);
 
+        this.sfx.playLaunch();
+
         this.activeRockets.push({
             mesh: rocketMesh,
             currentPos: startPos.clone(),
@@ -179,6 +193,7 @@ export class Pyrotechnics {
 
     // 1. Peony (Esférica Estándar)
     createSkyExplosion(origin, hexColor) {
+        this.sfx.playExplosion('peony');
         const count = 300;
         const positions = new Float32Array(count * 3);
         const velocities = [];
@@ -210,6 +225,7 @@ export class Pyrotechnics {
 
     // 2. Ring (Anillo Geométrico)
     createRingExplosion(origin, hexColor) {
+        this.sfx.playExplosion('ring');
         const count = 250;
         const positions = new Float32Array(count * 3);
         const velocities = [];
@@ -244,6 +260,7 @@ export class Pyrotechnics {
 
     // 3. Willow / Sauce (Lluvia de oro persistente que cae lentamente)
     createWillowExplosion(origin, hexColor = '#ffbe00') {
+        this.sfx.playExplosion('willow');
         const count = 400;
         const positions = new Float32Array(count * 3);
         const velocities = [];
@@ -400,5 +417,6 @@ export class Pyrotechnics {
 
     destroy() {
         this.stopAll();
+        if (this.sfx) this.sfx.destroy();
     }
 }

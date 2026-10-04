@@ -247,6 +247,9 @@ export class Stadium {
             this.video.muted = !this.video.muted;
             this.isAudioActive = !this.video.muted;
 
+            // Enlazar SFX de pirotecnia al mismo AudioContext (requiere gesto del usuario)
+            this.pyrotechnics.setAudio(this.audioCtx, this.isAudioActive);
+
             if (this.isAudioActive) {
                 btnAudio.innerText = "SILENCIAR";
                 btnAudio.style.color = "#ff0055";
@@ -437,6 +440,7 @@ export class Stadium {
         });
 
         this.pyrotechnics.stopAll();
+        this.pyrotechnics.setAudioEnabled(false);
         this.returnButton.style.display = 'inline-block';
     }
 
