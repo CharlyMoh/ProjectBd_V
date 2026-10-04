@@ -19,6 +19,11 @@ export class Pyrotechnics {
         this.sfx.setEnabled(enabled);
     }
 
+    async unlockAudio() {
+        this.sfx.setEnabled(true);
+        await this.sfx.unlock();
+    }
+
     // --- SHOW COREOGRAFIADO COMPLETO (15 SEG) ---
     startGrandShow() {
         this.clearPendingShow(); // Limpiar por si se presiona varias veces
@@ -176,7 +181,7 @@ export class Pyrotechnics {
         const rocketMesh = new THREE.Points(geometry, material);
         this.group.add(rocketMesh);
 
-        this.sfx.playLaunch();
+        this.sfx.playLaunch(type);
 
         this.activeRockets.push({
             mesh: rocketMesh,

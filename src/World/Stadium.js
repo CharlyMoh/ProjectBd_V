@@ -247,7 +247,6 @@ export class Stadium {
             this.video.muted = !this.video.muted;
             this.isAudioActive = !this.video.muted;
 
-            // Enlazar SFX de pirotecnia al mismo AudioContext (requiere gesto del usuario)
             this.pyrotechnics.setAudio(this.audioCtx, this.isAudioActive);
 
             if (this.isAudioActive) {
@@ -261,8 +260,27 @@ export class Stadium {
             }
         };
 
+        const btnFireworks = document.createElement('button');
+        btnFireworks.innerText = "TEST FUEGOS";
+        btnFireworks.style.cssText = "padding: 12px 24px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(10, 0, 20, 0.8); color: #ffbe00; border: 2px solid #ffbe00; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,190,0,0.4); transition: all 0.3s;";
+        btnFireworks.onmouseover = () => { btnFireworks.style.background = '#ffbe00'; btnFireworks.style.color = '#000000'; };
+        btnFireworks.onmouseout = () => { btnFireworks.style.background = 'rgba(10, 0, 20, 0.8)'; btnFireworks.style.color = '#ffbe00'; };
+        btnFireworks.onclick = async () => {
+            await this.pyrotechnics.unlockAudio();
+            this.pyrotechnics.startGrandShow();
+        };
+
+        const btnFinale = document.createElement('button');
+        btnFinale.innerText = "VER FINAL";
+        btnFinale.style.cssText = "padding: 12px 24px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(10, 0, 20, 0.8); color: #ff66b3; border: 2px solid #ff66b3; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,102,179,0.4); transition: all 0.3s;";
+        btnFinale.onmouseover = () => { btnFinale.style.background = '#ff66b3'; btnFinale.style.color = '#000000'; };
+        btnFinale.onmouseout = () => { btnFinale.style.background = 'rgba(10, 0, 20, 0.8)'; btnFinale.style.color = '#ff66b3'; };
+        btnFinale.addEventListener('click', () => this.handleShowEnd());
+
         this.uiContainer.appendChild(btnVolver);
         this.uiContainer.appendChild(btnAudio);
+        this.uiContainer.appendChild(btnFireworks);
+        this.uiContainer.appendChild(btnFinale);
         document.body.appendChild(this.uiContainer);
 
         this.cameraControlsContainer = null;
@@ -421,8 +439,8 @@ export class Stadium {
 
     updateBlackoutLights(time, colorsAttribute) {
         const heartbeat = 0.5 + Math.pow((Math.sin(time * 0.9) + 1) / 2, 8) * 0.5;
-        const pink = 0.16 + heartbeat * 0.18;
-        this.pointsMaterial.opacity = 0.22 + heartbeat * 0.12;
+        const pink = 0.24 + heartbeat * 0.28;
+        this.pointsMaterial.opacity = 0.3 + heartbeat * 0.16;
 
         for (let i = 0; i < colorsAttribute.count; i++) {
             colorsAttribute.setXYZ(i, pink, pink * 0.12, pink * 0.3);
