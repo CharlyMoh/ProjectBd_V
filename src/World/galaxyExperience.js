@@ -1,15 +1,22 @@
 import * as THREE from 'three';
 import { assetPath } from '../Core/assetPath.js';
 
-export function initGalaxyExperience({
+const galaxyBackgroundUrl = assetPath('assets/nave_nbackground.png');
+export const galaxyBackgroundReady = (() => {
+    const image = new Image();
+    image.src = galaxyBackgroundUrl;
+    return image.decode().catch(() => {});
+})();
+
+export async function initGalaxyExperience({
     mountNode = document.body,
     onComplete = null,
 } = {}) {
     const root = mountNode;
     if (!root) return;
+    await galaxyBackgroundReady;
 
     const mount = document.createElement('div');
-    const backgroundUrl = assetPath('assets/nave_nbackground.png');
     mount.style.position = 'fixed';
     mount.style.inset = '0';
     mount.style.width = '100vw';
@@ -31,7 +38,7 @@ export function initGalaxyExperience({
         .galaxy-scene-overlay {
             position: absolute;
             inset: 0;
-            background-image: url('${backgroundUrl}');
+            background-image: url('${galaxyBackgroundUrl}');
             background-size: cover;
             background-position: center;
             pointer-events: none;
@@ -75,7 +82,7 @@ export function initGalaxyExperience({
 
     const hud = document.createElement('div');
     hud.className = 'galaxy-scene-hud';
-    hud.innerHTML = 'SISTEMA DE NAVEGACIÓN ACTIVO<br>DESTINO: NÚCLEO GALÁCTICO<br>ESTADO: ATRAVESANDO VÓRTICE...';
+    hud.innerHTML = 'SISTEMA DE NAVEGACIÓN ACTIVO<br>DESTINO: GALAXIA<br>ESTADO: ATRAVESANDO VÓRTICE...';
     mount.appendChild(hud);
 
     const whiteout = document.createElement('div');
@@ -93,6 +100,8 @@ export function initGalaxyExperience({
     const overlay = document.createElement('div');
     overlay.className = 'galaxy-scene-overlay';
     mount.appendChild(overlay);
+
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x1a0000, 0.0035);
@@ -409,7 +418,7 @@ export function initGalaxyExperience({
         }
 
         if (elapsedTime >= 10 && elapsedTime < 25) {
-            hud.innerText = 'ATRACCIÓN GRAVITACIONAL DETECTADA.\nÓRBITA DE OBSERVACIÓN DESCENDENTE...';
+            hud.innerText = 'ATRACCIÓN GRAVITACIONAL DETECTADA.\nÓRBITA DE OBSERVACIÓN ACERCANDOSE...';
             hud.style.color = '#ffcc55';
 
             cameraSpeed = THREE.MathUtils.lerp(cameraSpeed, 240, delta * 0.2);
@@ -420,7 +429,7 @@ export function initGalaxyExperience({
         }
 
         if (elapsedTime >= 25 && elapsedTime < 32) {
-            hud.innerText = 'GALAXIA ESTABILIZADA.\nOBSERVANDO ROTACIÓN...';
+            hud.innerText = 'NAVE ESTABILIZADA.\nOBSERVANDO ROTACIÓN...';
             hud.style.color = '#aaffff';
 
             cameraSpeed = 0;

@@ -3,7 +3,7 @@ import { SceneManager } from './Core/SceneManager.js';
 import { BirthdayLobby } from './World/BirthdayLobby.js';
 import { LetterScene } from './World/LetterScene.js'; 
 import { Stadium } from './World/Stadium.js';
-import { initGalaxyExperience } from './World/galaxyExperience.js';
+import { galaxyBackgroundReady, initGalaxyExperience } from './World/galaxyExperience.js';
 
 const canvas = document.querySelector('canvas.webgl');
 const uiContainer = document.getElementById('ui-container');
@@ -104,11 +104,12 @@ function crossfadeGalaxyToLetter() {
 }
 
 // --- EVENTO 1: Galaxia + Carta (Puerta 1) ---
-lobby.onEnterLetter = () => {
+lobby.onEnterLetter = async () => {
+    await galaxyBackgroundReady;
     lobby.lobbyGroup.visible = false;
     canvas.style.display = 'none';
 
-    galaxyExperience = initGalaxyExperience({
+    galaxyExperience = await initGalaxyExperience({
         mountNode: document.body,
         onComplete: () => {
             crossfadeGalaxyToLetter();
