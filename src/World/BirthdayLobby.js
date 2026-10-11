@@ -431,7 +431,19 @@ export class BirthdayLobby {
             if (this.isCardOpen) return; 
             if (e.key === 'a' || e.key === 'ArrowLeft') this.keys.left = true;
             if (e.key === 'd' || e.key === 'ArrowRight') this.keys.right = true;
-            if (e.key === 'w' || e.key === 'ArrowUp') this.keys.up = true;
+            if (e.key === 'w' || e.key === 'ArrowUp') {
+                this.keys.up = true;
+
+                if (this.currentRoom === 2 && !this.isTransitioning) {
+                    const distLetter = Math.abs(this.player.position.x - this.doorLetter.position.x);
+                    const distStadium = Math.abs(this.player.position.x - this.doorStadium.position.x);
+
+                    if (distLetter >= 1.8 && distStadium < 1.8 && this.onEnterStadium) {
+                        this.isTransitioning = true;
+                        this.onEnterStadium();
+                    }
+                }
+            }
         });
 
         window.addEventListener('keyup', (e) => {

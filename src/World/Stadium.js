@@ -30,6 +30,7 @@ export class Stadium {
         this.isAudioActive = false;
 
         this.videoTexture = this.createVideoTexture();
+        this.startAudio();
         
         this.createCentralStage();
         this.create360Screens();
@@ -74,6 +75,17 @@ export class Stadium {
         this.analyser.connect(this.audioCtx.destination);
 
         this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+    }
+
+    startAudio() {
+        this.initAudioAnalyser();
+        this.video.muted = false;
+        this.isAudioActive = true;
+        this.audioCtx.resume().catch(() => {});
+        this.pyrotechnics.setAudio(this.audioCtx, true);
+        this.video.play().catch(error => {
+            console.warn('No se pudo iniciar el audio automáticamente:', error);
+        });
     }
 
     createCentralStage() {
@@ -233,54 +245,7 @@ export class Stadium {
         btnVolver.onmouseout = () => { btnVolver.style.background = 'rgba(10, 0, 20, 0.8)'; btnVolver.style.color = '#00d2ff'; };
         btnVolver.addEventListener('click', () => { if (this.onReturnToLobby) this.onReturnToLobby(); });
 
-        // Botón "ACTIVAR AUDIO & SHOW"
-        const btnAudio = document.createElement('button');
-        btnAudio.innerText = "ACTIVAR AUDIO";
-        btnAudio.style.cssText = "padding: 12px 24px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(10, 0, 20, 0.8); color: #00ffaa; border: 2px solid #00ffaa; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(0,255,170,0.4); transition: all 0.3s;";
-        
-        btnAudio.onclick = () => {
-            this.initAudioAnalyser();
-            if (this.audioCtx.state === 'suspended') {
-                this.audioCtx.resume();
-            }
-
-            this.video.muted = !this.video.muted;
-            this.isAudioActive = !this.video.muted;
-
-            this.pyrotechnics.setAudio(this.audioCtx, this.isAudioActive);
-
-            if (this.isAudioActive) {
-                btnAudio.innerText = "SILENCIAR";
-                btnAudio.style.color = "#ff0055";
-                btnAudio.style.borderColor = "#ff0055";
-            } else {
-                btnAudio.innerText = "ACTIVAR AUDIO";
-                btnAudio.style.color = "#00ffaa";
-                btnAudio.style.borderColor = "#00ffaa";
-            }
-        };
-
-        const btnFireworks = document.createElement('button');
-        btnFireworks.innerText = "TEST FUEGOS";
-        btnFireworks.style.cssText = "padding: 12px 24px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(10, 0, 20, 0.8); color: #ffbe00; border: 2px solid #ffbe00; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,190,0,0.4); transition: all 0.3s;";
-        btnFireworks.onmouseover = () => { btnFireworks.style.background = '#ffbe00'; btnFireworks.style.color = '#000000'; };
-        btnFireworks.onmouseout = () => { btnFireworks.style.background = 'rgba(10, 0, 20, 0.8)'; btnFireworks.style.color = '#ffbe00'; };
-        btnFireworks.onclick = async () => {
-            await this.pyrotechnics.unlockAudio();
-            this.pyrotechnics.startGrandShow();
-        };
-
-        const btnFinale = document.createElement('button');
-        btnFinale.innerText = "VER FINAL";
-        btnFinale.style.cssText = "padding: 12px 24px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(10, 0, 20, 0.8); color: #ff66b3; border: 2px solid #ff66b3; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,102,179,0.4); transition: all 0.3s;";
-        btnFinale.onmouseover = () => { btnFinale.style.background = '#ff66b3'; btnFinale.style.color = '#000000'; };
-        btnFinale.onmouseout = () => { btnFinale.style.background = 'rgba(10, 0, 20, 0.8)'; btnFinale.style.color = '#ff66b3'; };
-        btnFinale.addEventListener('click', () => this.handleShowEnd());
-
         this.uiContainer.appendChild(btnVolver);
-        this.uiContainer.appendChild(btnAudio);
-        this.uiContainer.appendChild(btnFireworks);
-        this.uiContainer.appendChild(btnFinale);
         document.body.appendChild(this.uiContainer);
 
         this.cameraControlsContainer = null;
@@ -439,8 +404,8 @@ export class Stadium {
 
     updateBlackoutLights(time, colorsAttribute) {
         const heartbeat = 0.5 + Math.pow((Math.sin(time * 0.9) + 1) / 2, 8) * 0.5;
-        const pink = 0.24 + heartbeat * 0.28;
-        this.pointsMaterial.opacity = 0.3 + heartbeat * 0.16;
+        const pink = 0.55 + heartbeat * 0.45;
+        this.pointsMaterial.opacity = 0.6 + heartbeat * 0.3;
 
         for (let i = 0; i < colorsAttribute.count; i++) {
             colorsAttribute.setXYZ(i, pink, pink * 0.12, pink * 0.3);

@@ -153,7 +153,7 @@ export class FireworkSFX {
     playLaunch(type = 'peony') {
         if (!this.canPlay()) return;
         const effectIndex = type === 'peony' ? 2 : Math.floor(Math.random() * 2);
-        if (this.playEffect(effectIndex, 0.10)) return;
+        if (this.playEffect(effectIndex, 0.07)) return;
 
         const ctx = this.ctx;
         const now = ctx.currentTime;
@@ -210,7 +210,7 @@ export class FireworkSFX {
 
     playExplosion(type = 'peony') {
         if (!this.canPlay()) return;
-        if (this.playEffect(2, 0.15)) return;
+        if (this.playEffect(2, 0.07)) return;
 
         const ctx = this.ctx;
         const now = ctx.currentTime;
