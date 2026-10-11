@@ -1,3 +1,5 @@
+import { assetPath } from '../Core/assetPath.js';
+
 /**
  * Fuegos artificiales procedurales más realistas:
  * silbido de cohete, boom grave, crackle de estrellas y eco de estadio.
@@ -46,7 +48,8 @@ export class FireworkSFX {
 
         if (!this.effectsLoadPromise) {
             this.effectsLoadPromise = Promise.all(
-                ['/assets/efecto1.wav', '/assets/efecto2.wav', '/assets/efecto3.wav'].map(async (url, index) => {
+                ['efecto1.wav', 'efecto2.wav', 'efecto3.wav'].map(async (file, index) => {
+                    const url = assetPath(`assets/${file}`);
                     try {
                         const response = await fetch(url);
                         if (!response.ok) throw new Error(`HTTP ${response.status}`);

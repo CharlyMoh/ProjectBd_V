@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Pyrotechnics } from '../Effects/Pyrotechnics.js';
+import { assetPath } from '../Core/assetPath.js';
 
 export class Stadium {
     constructor(scene, camera) {
@@ -40,7 +41,7 @@ export class Stadium {
 
     createVideoTexture() {
         this.video = document.createElement('video');
-        this.video.src = '/assets/bts-concert.mp4'; 
+        this.video.src = assetPath('assets/bts-concert.mp4'); 
         this.video.load();
         this.video.loop = false;
         this.video.muted = true; // Empieza en silenciador por políticas del navegador
