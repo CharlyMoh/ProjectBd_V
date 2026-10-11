@@ -247,19 +247,40 @@ export class Stadium {
             this.video.muted = !this.video.muted;
             this.isAudioActive = !this.video.muted;
 
+            this.pyrotechnics.setAudio(this.audioCtx, this.isAudioActive);
+
             if (this.isAudioActive) {
                 btnAudio.innerText = "SILENCIAR";
                 btnAudio.style.color = "#ff0055";
                 btnAudio.style.borderColor = "#ff0055";
             } else {
-                btnAudio.innerText = "🔊 ACTIVAR AUDIO";
+                btnAudio.innerText = "ACTIVAR AUDIO";
                 btnAudio.style.color = "#00ffaa";
                 btnAudio.style.borderColor = "#00ffaa";
             }
         };
 
+        const btnFireworks = document.createElement('button');
+        btnFireworks.innerText = "TEST FUEGOS";
+        btnFireworks.style.cssText = "padding: 12px 24px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(10, 0, 20, 0.8); color: #ffbe00; border: 2px solid #ffbe00; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,190,0,0.4); transition: all 0.3s;";
+        btnFireworks.onmouseover = () => { btnFireworks.style.background = '#ffbe00'; btnFireworks.style.color = '#000000'; };
+        btnFireworks.onmouseout = () => { btnFireworks.style.background = 'rgba(10, 0, 20, 0.8)'; btnFireworks.style.color = '#ffbe00'; };
+        btnFireworks.onclick = async () => {
+            await this.pyrotechnics.unlockAudio();
+            this.pyrotechnics.startGrandShow();
+        };
+
+        const btnFinale = document.createElement('button');
+        btnFinale.innerText = "VER FINAL";
+        btnFinale.style.cssText = "padding: 12px 24px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(10, 0, 20, 0.8); color: #ff66b3; border: 2px solid #ff66b3; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,102,179,0.4); transition: all 0.3s;";
+        btnFinale.onmouseover = () => { btnFinale.style.background = '#ff66b3'; btnFinale.style.color = '#000000'; };
+        btnFinale.onmouseout = () => { btnFinale.style.background = 'rgba(10, 0, 20, 0.8)'; btnFinale.style.color = '#ff66b3'; };
+        btnFinale.addEventListener('click', () => this.handleShowEnd());
+
         this.uiContainer.appendChild(btnVolver);
         this.uiContainer.appendChild(btnAudio);
+        this.uiContainer.appendChild(btnFireworks);
+        this.uiContainer.appendChild(btnFinale);
         document.body.appendChild(this.uiContainer);
 
         this.cameraControlsContainer = null;
@@ -273,15 +294,29 @@ export class Stadium {
         // --- 1. CÁMARA CINEMÁTICA AUTOMÁTICA ---
         if (this.camera) {
             if (this.currentCameraMode === 'dron') {
-                const radius = 68;
-                const descent = Math.min(videoTime / 15, 1);
-                const droneHeight = THREE.MathUtils.lerp(48, 32, descent);
-                this.targetCamPos.set(
-                    Math.sin(time * 0.12) * radius,
-                    droneHeight + Math.sin(time * 0.3) * 2,
-                    Math.cos(time * 0.12) * radius
-                );
-                this.targetLookAt.set(0, 4, 0);
+                if (this.finaleCameraStarted) {
+                    // Ascenso sincronizado con startGrandShow (158s): cubre todo el show pirotécnico
+                    const radius = 72;
+                    const ascend = Math.min((videoTime - 158) / 6, 1);
+                    const droneHeight = THREE.MathUtils.lerp(36, 56, Math.max(ascend, 0));
+                    this.targetCamPos.set(
+                        Math.sin(time * 0.1) * radius,
+                        droneHeight + Math.sin(time * 0.25) * 1.5,
+                        Math.cos(time * 0.1) * radius
+                    );
+                    this.targetLookAt.set(0, 18, 0);
+                } else {
+                    // Intro: bajada lenta para establecer la escala del estadio
+                    const radius = 68;
+                    const descent = Math.min(videoTime / 15, 1);
+                    const droneHeight = THREE.MathUtils.lerp(48, 32, descent);
+                    this.targetCamPos.set(
+                        Math.sin(time * 0.12) * radius,
+                        droneHeight + Math.sin(time * 0.3) * 2,
+                        Math.cos(time * 0.12) * radius
+                    );
+                    this.targetLookAt.set(0, 4, 0);
+                }
 
             } else if (this.currentCameraMode === 'vip') {
                 this.targetCamPos.set(
@@ -289,16 +324,28 @@ export class Stadium {
                     3 + Math.sin(time * 2.1) * 0.2,
                     25 + Math.cos(time * 1.3) * 0.3
                 );
-                this.targetLookAt.set(0, 10, 0); 
-                
+                this.targetLookAt.set(0, 10, 0);
+
             } else if (this.currentCameraMode === 'escenario') {
                 const panX = Math.sin(time * 0.5) * 30;
                 this.targetCamPos.set(Math.sin(time * 0.35) * 5, 4, 9);
                 this.targetLookAt.set(panX, 2, 40);
+
+            } else if (this.currentCameraMode === 'cercano') {
+                // Paneo cercano: público/pista con bamboleo sutil
+                const swayX = Math.sin(time * 0.9) * 0.2;
+                const swayY = Math.sin(time * 1.1) * 0.12;
+                this.targetCamPos.set(
+                    14 + Math.sin(time * 0.28) * 4 + swayX,
+                    2.4 + swayY,
+                    8 + Math.cos(time * 0.22) * 3
+                );
+                this.targetLookAt.set(Math.sin(time * 0.35) * 6, 3.5, 0);
             }
 
-            this.camera.position.lerp(this.targetCamPos, 0.03);
-            this.currentLookAt.lerp(this.targetLookAt, 0.04);
+            const lerpSpeed = this.finaleCameraStarted ? 0.06 : 0.03;
+            this.camera.position.lerp(this.targetCamPos, lerpSpeed);
+            this.currentLookAt.lerp(this.targetLookAt, this.finaleCameraStarted ? 0.055 : 0.04);
             this.camera.lookAt(this.currentLookAt);
         }
 
@@ -335,19 +382,23 @@ export class Stadium {
     updateBroadcastDirector(videoTime, time) {
         if (this.showEnded) return;
 
+        // 2:38 — pirotecnia + dron asciende a la vez para ver todo el show
         if (videoTime >= 158 && !this.grandShowStarted) {
             this.grandShowStarted = true;
+            this.finaleCameraStarted = true;
+            this.currentCameraMode = 'dron';
             this.pyrotechnics.startGrandShow();
         }
 
-        if (videoTime >= 169 && !this.finaleCameraStarted) {
-            this.finaleCameraStarted = true;
+        if (this.finaleCameraStarted) {
             this.currentCameraMode = 'dron';
         } else if (videoTime < 15) {
+            // 0:00–0:15 — dron bajando para establecer escala
             this.currentCameraMode = 'dron';
-        } else if (videoTime < 158) {
+        } else {
+            // 0:15–2:38 — rota VIP / Escenario / Cercano cada 12s
             const segment = Math.floor((videoTime - 15) / 12) % 3;
-            this.currentCameraMode = ['vip', 'escenario', 'vip'][segment];
+            this.currentCameraMode = ['vip', 'escenario', 'cercano'][segment];
         }
     }
 
@@ -388,8 +439,8 @@ export class Stadium {
 
     updateBlackoutLights(time, colorsAttribute) {
         const heartbeat = 0.5 + Math.pow((Math.sin(time * 0.9) + 1) / 2, 8) * 0.5;
-        const pink = 0.16 + heartbeat * 0.18;
-        this.pointsMaterial.opacity = 0.22 + heartbeat * 0.12;
+        const pink = 0.24 + heartbeat * 0.28;
+        this.pointsMaterial.opacity = 0.3 + heartbeat * 0.16;
 
         for (let i = 0; i < colorsAttribute.count; i++) {
             colorsAttribute.setXYZ(i, pink, pink * 0.12, pink * 0.3);
@@ -407,6 +458,7 @@ export class Stadium {
         });
 
         this.pyrotechnics.stopAll();
+        this.pyrotechnics.setAudioEnabled(false);
         this.returnButton.style.display = 'inline-block';
     }
 
