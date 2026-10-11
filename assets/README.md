@@ -36,9 +36,20 @@ Carpeta centralizada para todos los archivos multimedia del proyecto StadiumProj
 - `bts-concert.mp4` - Video de concierto de BTS (usado en pantallas)
 - `oncert.mp4` - Video alternativo de concierto
 
-### 🔊 Audio (Estructura para futuros archivos)
+### 🔊 Audio
 
+- `efecto1.wav` - Efecto genérico de lanzamiento
+- `efecto2.wav` - Efecto genérico de lanzamiento
+- `efecto3.wav` - Lanzamiento y explosión
 - `ambient-stadium.mp3` - Sonido ambiente del estadio (no existe aún, pero estructura lista)
+
+### Otros
+
+- `RockyCompleto.png` - Imagen adicional del proyecto
+
+## Ubicación
+
+Los recursos estáticos se guardan en `public/assets/` y se cargan desde la raíz con el prefijo `/assets/`.
 
 ## Rutas de Carga
 
