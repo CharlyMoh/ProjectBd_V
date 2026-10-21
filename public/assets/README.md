@@ -39,6 +39,7 @@ En el proyecto fuente se encuentra en `public/assets/` para que Vite los copie a
 
 ### 🔊 Audio (Estructura para futuros archivos)
 
+- `musicBox.mp3` - Música ambiental del lobby (se reproduce en bucle a volumen bajo)
 - `ambient-stadium.mp3` - Sonido ambiente del estadio (no existe aún, pero estructura lista)
 
 ## Rutas de Carga
