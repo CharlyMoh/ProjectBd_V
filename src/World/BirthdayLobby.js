@@ -37,6 +37,13 @@ export class BirthdayLobby {
 
         this.textureLoader = new THREE.TextureLoader();
 
+        this.ambientMusic = new Audio(assetPath('assets/musicBox.mp3'));
+        this.ambientMusic.loop = true;
+        this.ambientMusic.preload = 'auto';
+        // Ajusta este valor entre 0 y 1 para probar el volumen de la música ambiental.
+        this.ambientMusic.volume = 0.12;
+        this.isAmbientMusicActive = false;
+
         this.balloonTextures = [
             this.loadPixelTexture(assetPath('assets/blue-ballon.png')),
             this.loadPixelTexture(assetPath('assets/green-ballon.png')),
@@ -63,10 +70,25 @@ export class BirthdayLobby {
         this.playerStartX = -10; // Posición inicial del jugador
         this.nextMovementTime = 0;
         this.movementStepInterval = 1 / 24;
-        
         this.updateRoomVisibility(); 
-        
         this.initControls();
+    }
+
+    playAmbientMusic() {
+        this.isAmbientMusicActive = true;
+        this.ambientMusic.play().catch((error) => {
+            if (error.name === 'NotAllowedError') {
+                console.info('La música del lobby comenzará después de una interacción del usuario.');
+                return;
+            }
+
+            console.error('No se pudo reproducir la música ambiental del lobby. Verifica que musicBox.mp3 sea un archivo de audio compatible:', error);
+        });
+    }
+
+    pauseAmbientMusic() {
+        this.isAmbientMusicActive = false;
+        this.ambientMusic.pause();
     }
 
     loadPixelTexture(path) {
@@ -430,8 +452,14 @@ export class BirthdayLobby {
     initControls() {
         window.addEventListener('keydown', (e) => {
             if (this.isCardOpen) return; 
-            if (e.key === 'a' || e.key === 'ArrowLeft') this.keys.left = true;
-            if (e.key === 'd' || e.key === 'ArrowRight') this.keys.right = true;
+            if (e.key === 'a' || e.key === 'ArrowLeft') {
+                this.keys.left = true;
+                if (this.ambientMusic.paused) this.playAmbientMusic();
+            }
+            if (e.key === 'd' || e.key === 'ArrowRight') {
+                this.keys.right = true;
+                if (this.ambientMusic.paused) this.playAmbientMusic();
+            }
             if (e.key === 'w' || e.key === 'ArrowUp') {
                 this.keys.up = true;
 

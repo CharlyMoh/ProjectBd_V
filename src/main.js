@@ -55,6 +55,7 @@ function enterLetterScene() {
         lobby.openLastGiftBox();
         sceneManager.camera = orthoCamera;
         lobby.lobbyGroup.visible = true;
+        lobby.playAmbientMusic();
         lobby.isTransitioning = false;
         lobby.player.position.x += 2;
     };
@@ -105,6 +106,7 @@ function crossfadeGalaxyToLetter() {
 
 // --- EVENTO 1: Galaxia + Carta (Puerta 1) ---
 lobby.onEnterLetter = async () => {
+    lobby.pauseAmbientMusic();
     await galaxyBackgroundReady;
     lobby.lobbyGroup.visible = false;
     canvas.style.display = 'none';
@@ -119,6 +121,7 @@ lobby.onEnterLetter = async () => {
 
 // --- EVENTO 2: Transición al Concierto de BTS (Puerta 2) ---
 lobby.onEnterStadium = () => {
+    lobby.pauseAmbientMusic();
     sceneManager.scene.fog = null;
     lobby.lobbyGroup.visible = false;
     
@@ -132,6 +135,7 @@ lobby.onEnterStadium = () => {
         lobby.openLastGiftBox();
         sceneManager.camera = orthoCamera;
         lobby.lobbyGroup.visible = true;
+        lobby.playAmbientMusic();
         lobby.isTransitioning = false;
         lobby.player.position.x -= 2; 
     };
