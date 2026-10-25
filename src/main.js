@@ -4,6 +4,7 @@ import { BirthdayLobby } from './World/BirthdayLobby.js';
 import { LetterScene } from './World/LetterScene.js'; 
 import { Stadium } from './World/Stadium.js';
 import { galaxyBackgroundReady, initGalaxyExperience } from './World/galaxyExperience.js';
+import { assetPath } from './Core/assetPath.js';
 
 const canvas = document.querySelector('canvas.webgl');
 const uiContainer = document.getElementById('ui-container');
@@ -42,16 +43,68 @@ let letterScene = null;
 let stadiumScene = null;
 let galaxyExperience = null;
 
+const ambientacionNave = new Audio(assetPath('assets/AmbientacionNave.m4a'));
+ambientacionNave.loop = false;
+ambientacionNave.preload = 'auto';
+// Ajusta este valor entre 0 y 1 para probar el volumen de la ambientación de la nave.
+ambientacionNave.volume = 0.20;
+
+const cartaMusica = new Audio(assetPath('assets/cartaMusica.m4a'));
+cartaMusica.loop = false;
+cartaMusica.preload = 'auto';
+// Ajusta este valor entre 0 y 1 para probar el volumen de la música de la carta.
+cartaMusica.volume = 0.25;
+
+function playAmbientacionNave() {
+    ambientacionNave.currentTime = 0;
+    ambientacionNave.play().catch((error) => {
+        if (error.name === 'NotAllowedError') {
+            console.info('La ambientación de la nave comenzará después de una interacción del usuario.');
+            return;
+        }
+
+        console.error('No se pudo reproducir AmbientacionNave.m4a. Verifica que el archivo exista y sea compatible:', error);
+    });
+}
+
+function stopAmbientacionNave() {
+    ambientacionNave.pause();
+    ambientacionNave.currentTime = 0;
+}
+
+function playCartaMusica() {
+    cartaMusica.currentTime = 0;
+    cartaMusica.play().catch((error) => {
+        if (error.name === 'NotAllowedError') {
+            console.info('La música de la carta requiere una interacción del usuario.');
+            return;
+        }
+
+        console.error('No se pudo reproducir cartaMusica.m4a. Verifica que el archivo exista y sea compatible:', error);
+    });
+}
+
+function stopCartaMusica() {
+    cartaMusica.pause();
+    cartaMusica.currentTime = 0;
+}
+
 function enterLetterScene() {
     perspCamera.position.set(0, 0, 30);
     perspCamera.lookAt(0, 0, 0);
     sceneManager.camera = perspCamera;
 
     letterScene = new LetterScene(sceneManager.scene, sceneManager.camera);
+    letterScene.onMessageReceived = () => {
+        stopAmbientacionNave();
+        playCartaMusica();
+    };
 
     letterScene.onReturnToLobby = () => {
         letterScene.destroy();
         letterScene = null;
+        stopAmbientacionNave();
+        stopCartaMusica();
         lobby.openLastGiftBox();
         sceneManager.camera = orthoCamera;
         lobby.lobbyGroup.visible = true;
@@ -107,6 +160,7 @@ function crossfadeGalaxyToLetter() {
 // --- EVENTO 1: Galaxia + Carta (Puerta 1) ---
 lobby.onEnterLetter = async () => {
     lobby.pauseAmbientMusic();
+    playAmbientacionNave();
     await galaxyBackgroundReady;
     lobby.lobbyGroup.visible = false;
     canvas.style.display = 'none';

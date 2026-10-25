@@ -29,6 +29,7 @@ export class LetterScene {
         this.overlay = null;
         this.isLetterOpen = false;
         this.backgroundFade = 1;
+        this.onMessageReceived = null;
 
         // Control de tiempo para mostrar botón
         this.sceneStartTime = null; // Se inicializa cuando show() es llamado
@@ -516,33 +517,32 @@ export class LetterScene {
 
         // Mensaje de la carta
         this.letterContent.innerHTML = `
-        <p class="journal-status">[ BITÁCORA // MODO EMERGENCIA ]</p>
+            <p style="font-size: 1.25rem; font-weight: bold; margin-bottom: 12px; color: #ffffff;">
+                Hola mi estimada,
+            </p>
 
-        <p>Hola,</p>
+            <p style="margin-bottom: 16px; line-height: 1.7;">
+                Preparé una forma un poco distinta de felicitarte para tu cumpleaños, espero sea de tu agrado. La verdad no sé cuántas veces intenté escribir esto porque este proyecto lo inicié específicamente el 18 de julio y, como sabrás, pues muchas cosas cambiaron de esa fecha a la de hoy, 24 de octubre de 2026; es correcto, estoy terminando esto literal a 2 días de tu cumpleaños.
+            </p>
 
-        <p>
-            text.
-        </p>
+            <p style="margin-bottom: 16px; line-height: 1.7;">
+                Quiero darte las felicitaciones por tus 20 años, ya casi me alcanzas. Espero hayas podido pasar un buen rato con tu familia el domingo, mala suerte que cayó tu cumple en lunes pero bueno. Quiero que sepas que estoy y estaré para ti siempre que lo necesites pero no solo quería felicitarte, sino también agradecerte por la gran persona que has sido conmigo, en serio transmites muchas cosas muy bonitas. Sonará cliché, pero me siento afortunado de haberte conocido, siempre pienso en que si en el pasado tomaba otras decisiones nunca nos hubiéramos conocido, y es curioso cómo la vida va tomando rumbos que uno no espera.
+            </p>
 
-        <p>
-            text.
-        </p>
+            <p style="margin-bottom: 16px; line-height: 1.7;">
+                Ojalá te guste esto que preparé para ti y nada, desde mi lado más sincero y honesto quiero decirte que en verdad tqm. Como te comenté esto lo inicié mucho antes de que pasaran todas estas cosas, así que para tu siguiente cumpleaños no sé qué haré, habrá que superarse de alguna forma. Es para mi realmente algo muy bonito esto que estamos iniciando o teniendo, uno nunca sabe que nos depara el futuro así que bueno que dure lo que tenga que durar, no en plan pesimista obvio, tu me entenderas, pff no recuerdo cuando fue la última vez que escribí algo para alguien, capaz y nunca lo hice no cap, pero bueno tampoco me quiero extender mucho más porque ya sabes que me sigo derecho, así que eso felicidades por tus 20's :).
+            </p>
 
-        <p>
-            text.
-        </p>
+            <p style="margin-bottom: 24px; font-size: 1.1rem; line-height: 1.6;">
+                Te deseo lo mejor hoy y siempre &lt;3
+            </p>
 
-        <br><br>
+            <p style="font-size: 1.15rem; font-weight: bold; color: #ffbe00; letter-spacing: 1px;">
+                Con mucho cariño,<br>
+                Carlos.
+            </p>
 
-        <p style="
-            font-size:16px;
-            color:#bbbbbb;
-            opacity:.8;
-        ">
-            (Desplázate hacia abajo para ver la galaxia...)
-        </p>
-
-        <br><br>
+            <br><br>
 
     <button id="btn-volver-lobby" style="
         padding:14px 28px;
@@ -569,6 +569,7 @@ export class LetterScene {
         this.uiContainer.appendChild(this.letterScrollContainer);
 
         this.startBtn.addEventListener('click', () => {
+            if (this.onMessageReceived) this.onMessageReceived();
             this.startBtn.style.display = 'none';
             this.transformToPetrovaLine();
             this.isFormingText = true;

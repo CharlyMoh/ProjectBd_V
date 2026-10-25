@@ -418,7 +418,7 @@ export async function initGalaxyExperience({
         }
 
         if (elapsedTime >= 10 && elapsedTime < 25) {
-            hud.innerText = 'ATRACCIÓN GRAVITACIONAL DETECTADA.\nÓRBITA DE OBSERVACIÓN ACERCANDOSE...';
+            hud.innerText = 'ATRACCIÓN GRAVITACIONAL DETECTADA.\nACERCANDOSE A ÓRBITA PARA OBSERVACIÓN ...';
             hud.style.color = '#ffcc55';
 
             cameraSpeed = THREE.MathUtils.lerp(cameraSpeed, 240, delta * 0.2);
