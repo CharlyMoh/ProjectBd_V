@@ -532,6 +532,7 @@ export class LetterScene {
                 desde que lo inicié hasta la fecha de hoy, 24 de octubre de 2026 es correcto, estoy terminando esto literal 
                 a 2 días de tu cumpleaños.
                 Corrección, a 1 día porque hice unos cambios de última hora jajaja.
+                Corrección 2.0 el mismo día, 26 de octubre a las 8:00 AM.
             </p>
 
             <p style="font-size: 1rem; margin-bottom: 18px; line-height: 1.75; color: #e2e8f0;">
@@ -550,12 +551,11 @@ export class LetterScene {
                 Es para mi algo realmente muy bonito esto que estamos teniendo/iniciando y bueno más allá de eso gracias por 
                 ser una gran amiga (ya pronto no solo eso jaja), así que bueno gracias por eso por qué no?, como dirías tu 
                 "nosotros eramos agradecimiento?" pff no recuerdo cuando fue la última vez que escribí algo para alguien,
-                capaz y nunca lo hice no cap, pero bueno tampoco me quiero extender mucho más porque ya sabes que me sigo derecho, así que eso felicidades 
-                por tus 20's :).
+                capaz y nunca lo hice no cap, pero bueno como varias veces ya dijiste: "nunca digas nunca" igual es divertido quizá debería hacerlo más seguido para mejorar mi gramatica y reacción tan de nivel primaria que tengo. Quisiera expresar muchas cosas pero muy probablemente las palabras no me alcanzarían así que nuevamente gracias por ser esa gran persona, no solo conmigo con todos, sin más por el momento porque sabes que me sigo derecho, felicidades por tus 20's :), no se me olvidó felicitarte solamente que necesitabas una lap para visualizar esto y realicé algunos retoques finales.
             </p>
 
             <p style="font-size: 1rem; margin-bottom: 24px; line-height: 1.75; color: #ffffff;">
-                Te deseo lo mejor hoy y siempre &lt;3
+                Te deseo lo mejor siempre &lt;3
             </p>
 
             <p style="font-size: 1.2rem; font-weight: bold; color: #ffbe00; letter-spacing: 1px; margin-bottom: 32px;">

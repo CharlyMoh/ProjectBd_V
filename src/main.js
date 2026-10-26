@@ -50,7 +50,7 @@ ambientacionNave.preload = 'auto';
 ambientacionNave.volume = 0.40;
 
 const cartaMusica = new Audio(assetPath('assets/cartaMusica.m4a'));
-cartaMusica.loop = false;
+cartaMusica.loop = true;
 cartaMusica.preload = 'auto';
 // Ajusta este valor entre 0 y 1 para probar el volumen de la música de la carta.
 cartaMusica.volume = 0.20;
