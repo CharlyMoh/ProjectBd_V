@@ -3,9 +3,10 @@ import { Pyrotechnics } from '../Effects/Pyrotechnics.js';
 import { assetPath } from '../Core/assetPath.js';
 
 export class Stadium {
-    constructor(scene, camera) {
+    constructor(scene, camera, videoVolume = 1) {
         this.scene = scene;
         this.camera = camera;
+        this.videoVolume = videoVolume;
 
         this.stadiumGroup = new THREE.Group();
         this.scene.add(this.stadiumGroup);
@@ -44,6 +45,7 @@ export class Stadium {
         this.video.src = assetPath('assets/bts-concert.mp4'); 
         this.video.load();
         this.video.loop = false;
+        this.video.volume = this.videoVolume;
         this.video.muted = true; // Empieza en silenciador por políticas del navegador
         this.video.playsInline = true;
         this.video.setAttribute('playsinline', '');

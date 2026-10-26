@@ -516,28 +516,49 @@ export class LetterScene {
             'opacity .8s ease, transform .8s ease';
 
         // Mensaje de la carta
-this.letterContent.innerHTML = `
-            <p style="font-size: 1.15rem; font-weight: bold; margin-bottom: 18px; color: #ffffff;">
+        this.letterContent.innerHTML = `
+            <p style="font-size: 1.2rem; font-weight: bold; margin-bottom: 18px; color: #ffffff;">
                 Hola mi estimada,
             </p>
 
             <p style="font-size: 1rem; margin-bottom: 18px; line-height: 1.75; color: #e2e8f0;">
-                Preparé una forma un poco distinta de felicitarte para tu cumpleaños, espero sea de tu agrado. La verdad no sé cuántas veces intenté escribir esto porque este proyecto lo inicié específicamente el 18 de julio y, como sabrás, pues muchas cosas cambiaron de esa fecha a la de hoy, 24 de octubre de 2026; es correcto, estoy terminando esto literal a 2 días de tu cumpleaños.
+                Preparé una forma un poco distinta de felicitarte para tu cumpleaños, espero sea de tu agrado, busqué no hacer 
+                la típica histora de instagram así que por qué no combinar un poco de mi carrera con un día especial. 
+                La verdad no sé cuántas veces intenté escribir esto porque el proyecto lo inicié específicamente el 18 de julio
+                de hecho si es que te llega algún recuerdo, muchas veces te medio contaba que estaba haciendo alguna cosilla 
+                y así, o que probaba sobre como hacer galaxias etc, bueno todo eso era justamente porque estaba haciendo esto, 
+                te di pequeños msj subliminales y ni te dabas cuenta, igual es chistoso porque mientras iba desarrollando esto
+                pues nos fuimos haciendo grandes amigos y al final más que eso, y pues mira como ha pasado el tiempo 
+                desde que lo inicié hasta la fecha de hoy, 24 de octubre de 2026 es correcto, estoy terminando esto literal 
+                a 2 días de tu cumpleaños.
+                Corrección, a 1 día porque hice unos cambios de última hora jajaja.
             </p>
 
             <p style="font-size: 1rem; margin-bottom: 18px; line-height: 1.75; color: #e2e8f0;">
-                Quiero darte las felicitaciones por tus 20 años, ya casi me alcanzas. Espero hayas podido pasar un buen rato con tu familia el domingo, mala suerte que cayó tu cumple en lunes pero bueno. Quiero que sepas que estoy y estaré para ti siempre que lo necesites pero no solo quería felicitarte, sino también agradecerte por la gran persona que has sido conmigo, en serio transmites muchas cosas muy bonitas. Sonará cliché, pero me siento afortunado de haberte conocido, siempre pienso en que si en el pasado tomaba otras decisiones nunca nos hubiéramos conocido, y es curioso cómo la vida va tomando rumbos que uno no espera.
+                Quiero darte las felicitaciones por tus 20 años, ya casi me alcanzas D:. Espero hayas podido pasar un buen 
+                rato con tu familia el domingo, mala suerte que cayó tu cumple en lunes pero bueno. Quiero que sepas que estoy 
+                y estaré para ti siempre que lo necesites pero no solo quería felicitarte, sino también agradecerte por la 
+                gran persona que has sido conmigo, en serio me transmites muchas cosas muy bonitas. Sonará cliché, 
+                pero me siento afortunado de haberte conocido, siempre pienso en que si en el pasado tomaba otras 
+                decisiones nunca nos hubiéramos conocido, y es curioso cómo la vida va tomando rumbos que uno no espera.
             </p>
 
             <p style="font-size: 1rem; margin-bottom: 18px; line-height: 1.75; color: #e2e8f0;">
-                Ojalá te guste esto que preparé para ti y nada, desde mi lado más sincero y honesto quiero decirte que en verdad tqm. Como te comenté esto lo inicié mucho antes de que pasaran todas estas cosas, así que para tu siguiente cumpleaños no sé qué haré, habrá que superarse de alguna forma. Es para mi realmente algo muy bonito esto que estamos iniciando o teniendo, uno nunca sabe que nos depara el futuro así que bueno que dure lo que tenga que durar, no en plan pesimista obvio, tu me entenderas, pff no recuerdo cuando fue la última vez que escribí algo para alguien, capaz y nunca lo hice no cap, pero bueno tampoco me quiero extender mucho más porque ya sabes que me sigo derecho, así que eso felicidades por tus 20's :).
+                Ojalá te guste esto que preparé y nada, desde mi lado más sincero y honesto quiero decirte que en 
+                verdad tqm. Como te comenté esto lo inicié mucho antes de que pasaran todas estas cosas, 
+                así que para tu siguiente cumpleaños no sé qué haré, habrá que superarse de alguna forma. 
+                Es para mi algo realmente muy bonito esto que estamos teniendo/iniciando y bueno más allá de eso gracias por 
+                ser una gran amiga (ya pronto no solo eso jaja), así que bueno gracias por eso por qué no?, como dirías tu 
+                "nosotros eramos agradecimiento?" pff no recuerdo cuando fue la última vez que escribí algo para alguien,
+                capaz y nunca lo hice no cap, pero bueno tampoco me quiero extender mucho más porque ya sabes que me sigo derecho, así que eso felicidades 
+                por tus 20's :).
             </p>
 
             <p style="font-size: 1rem; margin-bottom: 24px; line-height: 1.75; color: #ffffff;">
                 Te deseo lo mejor hoy y siempre &lt;3
             </p>
 
-            <p style="font-size: 1.15rem; font-weight: bold; color: #ffbe00; letter-spacing: 1px; margin-bottom: 32px;">
+            <p style="font-size: 1.2rem; font-weight: bold; color: #ffbe00; letter-spacing: 1px; margin-bottom: 32px;">
                 Con mucho cariño,<br>
                 Carlos.
             </p>

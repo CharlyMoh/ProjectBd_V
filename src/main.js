@@ -47,13 +47,13 @@ const ambientacionNave = new Audio(assetPath('assets/AmbientacionNave.m4a'));
 ambientacionNave.loop = false;
 ambientacionNave.preload = 'auto';
 // Ajusta este valor entre 0 y 1 para probar el volumen de la ambientación de la nave.
-ambientacionNave.volume = 0.20;
+ambientacionNave.volume = 0.40;
 
 const cartaMusica = new Audio(assetPath('assets/cartaMusica.m4a'));
 cartaMusica.loop = false;
 cartaMusica.preload = 'auto';
 // Ajusta este valor entre 0 y 1 para probar el volumen de la música de la carta.
-cartaMusica.volume = 0.25;
+cartaMusica.volume = 0.20;
 
 function playAmbientacionNave() {
     ambientacionNave.currentTime = 0;
@@ -181,7 +181,7 @@ lobby.onEnterStadium = () => {
     
     sceneManager.camera = perspCamera;
     
-    stadiumScene = new Stadium(sceneManager.scene, sceneManager.camera);
+    stadiumScene = new Stadium(sceneManager.scene, sceneManager.camera, 0.30);
     
     stadiumScene.onReturnToLobby = () => {
         stadiumScene.destroy();
